@@ -8,6 +8,8 @@ import speech_recognition as sr
 from datetime import datetime, timedelta
 import json
 import aiohttp
+from flask import Flask
+from threading import Thread
 
 intents = disnake.Intents.default()
 intents.message_content = True
@@ -45,27 +47,27 @@ def get_random_pokemon():
         return pokemon_name, pokemon_image
     else:
         return None, None
-
-
+    
+        
 @tasks.loop(seconds=25)
 async def spawn_pokemon():
     global current_pokemon
     pokemon_name, pokemon_image = get_random_pokemon()
-
+    
     if pokemon_name:
         current_pokemon = pokemon_name
         channel = disnake.utils.get(bot.get_all_channels(), name="🐧〃poké-game")
-
+        
         if channel:
             try:
                 await channel.purge(limit=100, check=lambda m: m.author == bot.user)
             except Exception as e:
                 print(f"Erreur lors de la purge des messages: {e}")
-
+            
             embed = disnake.Embed(title=f"**`Un {pokemon_name} sauvage est apparu !`**", color=disnake.Colour.dark_gray())
             embed.set_image(url=pokemon_image)
             embed.set_footer(text="Utilisez .capture pour tenter de le capturer !")
-
+            
             await channel.send("https://media.discordapp.net/attachments/1281045310310711358/1281158205405270080/loading-6324_256.gif")
             await channel.send(embed=embed)
 
@@ -92,12 +94,12 @@ async def on_message(message):
             color=disnake.Color.blue()
         )
         await logs_channel.send(embed=embed)
-
+    
     await bot.process_commands(message)
 
 
 class Gif():
-
+    
     Punch1 = 'https://c.tenor.com/f3J-yZcZfU0AAAAC/tenor.gif'
     Punch2 = 'https://media.tenor.com/nF_grpASXygAAAAj/bubu-dudu.gif'
     Punch3 = 'https://media.tenor.com/XIkC63044qYAAAAj/nico-and-sen-frog-helicopter-punch.gif'
@@ -129,7 +131,7 @@ class Gif():
     Hug13 = 'https://media.tenor.com/Y9J2vBrjPCsAAAAM/anime-anime-hug.gif'
     Hug14 = 'https://media.tenor.com/oB-fcENXEasAAAAM/juvia-meredy.gif'
     Hug15 = 'https://media.tenor.com/kCBUETL9jPAAAAAM/anime-hug.gif'
-
+    
     Kiss1 = 'https://media.tenor.com/OByUsNZJyWcAAAAM/emre-ada.gif'
     Kiss2 = 'https://media.tenor.com/rm3WYOj5pR0AAAAM/engage-kiss-anime-kiss.gif'
     Kiss3 = 'https://media.tenor.com/XB3mEB77l7EAAAAM/kiss.gif'
@@ -161,7 +163,7 @@ async def capture(ctx):
         await asyncio.sleep(5)
         await msg.delete()
         return
-
+    
     global current_pokemon
     if current_pokemon is None:
         em = disnake.Embed(
@@ -170,7 +172,7 @@ async def capture(ctx):
         )
         await ctx.send(content=ctx.author.mention, embed=em)
         return
-
+    
     if ctx.author.id not in pokedex_data:
         pokedex_data[ctx.author.id] = []
 
@@ -180,7 +182,7 @@ async def capture(ctx):
         color=disnake.Colour.dark_gray()
     )
     await ctx.send(content=ctx.author.mention, embed=em)
-
+    
     current_pokemon = None
 
 @bot.command()
@@ -211,7 +213,7 @@ async def pokedex(ctx):
             color=disnake.Colour.red()
         )
         await ctx.send(embed=em)
-
+        
 @bot.command()
 async def trade(ctx, user: disnake.Member):
     if ctx.channel.name != "🐧〃poké-trade":
@@ -224,10 +226,10 @@ async def trade(ctx, user: disnake.Member):
         await asyncio.sleep(5)
         await msg.delete()
         return
-
+    
     user_pokedex = pokedex_data.get(ctx.author.id, [])
     target_pokedex = pokedex_data.get(user.id, [])
-
+    
     if not user_pokedex:
         em = disnake.Embed(
             title="Échange impossible",
@@ -236,7 +238,7 @@ async def trade(ctx, user: disnake.Member):
         )
         await ctx.send(embed=em)
         return
-
+    
     if not target_pokedex:
         em = disnake.Embed(
             title="Échange impossible",
@@ -245,46 +247,46 @@ async def trade(ctx, user: disnake.Member):
         )
         await ctx.send(embed=em)
         return
-
+    
     embed = disnake.Embed(
         title=f"Échange de Pokémon entre {ctx.author.name} et {user.name}",
         description="Chacun doit choisir un Pokémon à échanger",
         color=disnake.Color.blue()
     )
-
+    
     select_author = disnake.ui.Select(placeholder="Choisis ton Pokémon", options=[disnake.SelectOption(label=pokemon) for pokemon in user_pokedex])
     select_target = disnake.ui.Select(placeholder=f"{user.name}, choisis ton Pokémon", options=[disnake.SelectOption(label=pokemon) for pokemon in target_pokedex])
-
+    
     trade_data = {"author_choice": None, "target_choice": None}
-
+    
     async def author_callback(interaction: disnake.Interaction):
         if interaction.user != ctx.author:
             await interaction.response.send_message("Seul l'utilisateur hôte peut faire cette sélection.", ephemeral=True)
             return
         trade_data["author_choice"] = select_author.values[0]
         await interaction.response.send_message(f"Tu as choisi {trade_data['author_choice']}.")
-
+    
     async def target_callback(interaction: disnake.Interaction):
         if interaction.user != user:
             await interaction.response.send_message("Seul l'utilisateur ciblé peut faire cette sélection.", ephemeral=True)
             return
         trade_data["target_choice"] = select_target.values[0]
         await interaction.response.send_message(f"Tu as choisi {trade_data['target_choice']}.")
-
+    
     select_author.callback = author_callback
     select_target.callback = target_callback
-
+    
     view = disnake.ui.View()
     view.add_item(select_author)
     view.add_item(select_target)
-
+    
     async def finalize_trade(interaction: disnake.Interaction):
         if trade_data["author_choice"] and trade_data["target_choice"]:
             pokedex_data[ctx.author.id].remove(trade_data["author_choice"])
             pokedex_data[ctx.author.id].append(trade_data["target_choice"])
             pokedex_data[user.id].remove(trade_data["target_choice"])
             pokedex_data[user.id].append(trade_data["author_choice"])
-
+            
             await interaction.response.send_message(
                 f"Échange terminé ! {ctx.author.name} a échangé {trade_data['author_choice']} contre {trade_data['target_choice']} de {user.name}."
             )
@@ -294,7 +296,7 @@ async def trade(ctx, user: disnake.Member):
     finalize_button = disnake.ui.Button(label="Finaliser l'échange", style=disnake.ButtonStyle.green)
     finalize_button.callback = finalize_trade
     view.add_item(finalize_button)
-
+    
     await ctx.send(embed=embed, view=view)
 
 
@@ -312,7 +314,7 @@ async def drop(ctx, user: disnake.Member):
         return
 
     user_pokedex = pokedex_data.get(ctx.author.id, [])
-
+    
     if not user_pokedex:
         em = disnake.Embed(
             title="Don impossible",
@@ -321,32 +323,32 @@ async def drop(ctx, user: disnake.Member):
         )
         await ctx.send(embed=em)
         return
-
+    
     embed = disnake.Embed(
         title=f"Donner un Pokémon à {user.name}",
         description="Choisis un Pokémon à donner",
         color=disnake.Color.red()
     )
-
+    
     select_author = disnake.ui.Select(placeholder="Choisis un Pokémon", options=[disnake.SelectOption(label=pokemon) for pokemon in user_pokedex])
-
+    
     async def author_callback(interaction: disnake.Interaction):
         if interaction.user != ctx.author:
             await interaction.response.send_message("Seul l'utilisateur hôte peut choisir.", ephemeral=True)
             return
         selected_pokemon = select_author.values[0]
-
+        
         pokedex_data[ctx.author.id].remove(selected_pokemon)
         if user.id not in pokedex_data:
             pokedex_data[user.id] = []
         pokedex_data[user.id].append(selected_pokemon)
-
+        
         await interaction.response.send_message(f"{ctx.author.name} a donné {selected_pokemon} à {user.name}.")
-
+    
     select_author.callback = author_callback
     view = disnake.ui.View()
     view.add_item(select_author)
-
+    
     await ctx.send(embed=embed, view=view)
 
 
@@ -358,74 +360,74 @@ async def help(ctx):
         description="Voici les commandes disponibles pour jouer à **Poké Game**",
         color=disnake.Color.green()
     )
-
+    
     embed.add_field(
         name=".capture",
         value="Utilisez cette commande pour capturer le Pokémon sauvage qui apparaît aléatoirement.",
         inline=False
     )
-
+    
     embed.add_field(
         name=".pokedex",
         value="Affiche les Pokémon que vous avez capturés dans votre Pokédex.",
         inline=False
     )
-
+    
     embed.add_field(
         name=".trade @utilisateur",
         value="Échange un Pokémon avec un autre utilisateur. Les deux utilisateurs doivent sélectionner un Pokémon pour l'échanger.",
         inline=False
     )
-
+    
     embed.add_field(
         name=".drop @utilisateur",
         value="Donne un Pokémon à un autre utilisateur. Vous devez sélectionner un Pokémon à donner.",
         inline=False
     )
-
+    
     # Embed pour Fun Commands
     embed1 = disnake.Embed(
         title="**Fun** - Commandes",
         description="Voici les commandes disponibles pour le fun du bot **Misaki**",
         color=disnake.Color.green()
     )
-
+    
     embed1.add_field(
         name=".hug @utilisateur",
         value="Utilisez cette commande pour faire un câlin à un utilisateur.",
         inline=False
     )
-
+    
     embed1.add_field(
         name=".kiss @utilisateur",
         value="Utilisez cette commande pour faire un bisou à un utilisateur.",
         inline=False
     )
-
+    
     embed1.add_field(
         name=".punch @utilisateur",
         value="Utilisez cette commande pour mettre un coup de poing.",
         inline=False
     )
-
+    
     embed1.add_field(
         name=".cookies @utilisateur",
         value="Donne un cookie à un autre utilisateur.",
         inline=False
     )
-
+    
     embed1.add_field(
         name=".pokeball @utilisateur",
         value="Utilisez cette commande pour capturer un utilisateur.",
         inline=False
     )
-
+    
     embed1.add_field(
         name=".teddy @utilisateur",
         value="Donne un ours en peluche à un autre utilisateur.",
         inline=False
     )
-
+    
     embed1.add_field(
         name=".murder @utilisateur",
         value="Utilisez cette commande pour tuée un utilisateur pour une chips est un coca.",
@@ -442,7 +444,7 @@ async def help(ctx):
     await ctx.send(embed=embed)
     await ctx.send(embed=embed1)
 
-
+    
 
 
 PunchList = [Gif.Punch1, Gif.Punch2, Gif.Punch3, Gif.Punch4, Gif.Punch5, Gif.Punch6, Gif.Punch7, Gif.Punch8, Gif.Punch9, Gif.Punch10, Gif.Punch11, Gif.Punch12, Gif.Punch13, Gif.Punch14, Gif.Punch15]
@@ -456,7 +458,7 @@ async def punch(ctx, user: disnake.Member):
     em.set_image(url=PuncfhResult)
     em.set_footer(text=f'{ctx.author.name} a donné un coup de poing à {user.name}')
     await ctx.send(content=user.mention, embed=em)
-
+    
 
 KissList =  [Gif.Kiss1, Gif.Kiss2, Gif.Kiss3, Gif.Kiss4, Gif.Kiss5, Gif.Kiss6, Gif.Kiss7, Gif.Kiss8, Gif.Kiss9, Gif.Kiss10, Gif.Kiss11, Gif.Kiss12, Gif.Kiss13, Gif.Kiss14, Gif.Kiss15]
 
@@ -469,7 +471,7 @@ async def kiss(ctx, user: disnake.Member):
     em.set_image(url=KissResult)
     em.set_footer(text=f'{ctx.author.name} a fait un bisou à {user.name}')
     await ctx.send(content=user.mention, embed=em)
-
+    
 
 HugList = [Gif.Hug1, Gif.Hug2, Gif.Hug3, Gif.Hug4, Gif.Hug5, Gif.Hug6, Gif.Hug7, Gif.Hug8, Gif.Hug9, Gif.Hug10, Gif.Hug11, Gif.Hug12, Gif.Hug13, Gif.Hug14, Gif.Hug15]
 
@@ -482,7 +484,7 @@ async def hug(ctx, user: disnake.Member):
     em.set_image(url=HugResult)
     em.set_footer(text=f'{ctx.author.name} a fait un calins à {user.name}')
     await ctx.send(content=user.mention, embed=em)
-
+    
 
 @bot.command()
 async def cookies(ctx, user: disnake.Member):
@@ -492,7 +494,7 @@ async def cookies(ctx, user: disnake.Member):
     em.set_image(url='https://itadakimasuanime.wordpress.com/wp-content/uploads/2013/03/checkerboard-cookies-ginga-e-kickoff.jpg')
     em.set_footer(text=f'{ctx.author.name} a donné un cookies à {user.name}')
     await ctx.send(content=user.mention, embed=em)
-
+    
 @bot.command()
 async def pokeball(ctx, user: disnake.Member):
     em = disnake.Embed(
@@ -501,7 +503,7 @@ async def pokeball(ctx, user: disnake.Member):
     em.set_image(url='https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Pokebola-pokeball-png-0.png/601px-Pokebola-pokeball-png-0.png')
     em.set_footer(text=f'{ctx.author.name} a choper {user.name} dans sa pokeball')
     await ctx.send(content=user.mention, embed=em)
-
+    
 @bot.command()
 async def teddy(ctx, user: disnake.Member):
     em = disnake.Embed(
@@ -510,7 +512,7 @@ async def teddy(ctx, user: disnake.Member):
     em.set_image(url='https://lh4.googleusercontent.com/proxy/jezHogr9Elw7BYouFaWMZ8rFhjF9VrqaQ3_wbzvsSHEqA0s_oJ_xpSG4as4-tnp8MQScBR7DrndEGiR5XR7UByjZZNUWMOzT')
     em.set_footer(text=f'{ctx.author.name} a donné à {user.name} un ours en peluche')
     await ctx.send(content=user.mention, embed=em)
-
+    
 @bot.command()
 async def murder(ctx, user: disnake.Member):
     em = disnake.Embed(
@@ -519,16 +521,16 @@ async def murder(ctx, user: disnake.Member):
     em.set_image(url='https://media.tenor.com/NbBCakbfZnkAAAAM/die-kill.gif')
     em.set_footer(text=f'{ctx.author.name} a tuée {user.name} pour une chips est un coca')
     await ctx.send(content=user.mention, embed=em)
-
+    
 @bot.command()
 async def match(ctx, option=None, user: disnake.Member = None):
     if option == "random":
         members = [member for member in ctx.guild.members if not member.bot]
-
+        
         if not members:
             await ctx.send("Je ne trouve aucun membre humain dans ce serveur !")
             return
-
+        
         random_user = random.choice(members)
         while random_user == ctx.author:
             random_user = random.choice(members)
@@ -551,14 +553,14 @@ async def match(ctx, option=None, user: disnake.Member = None):
 
     elif user:
         percentage = random.randint(0, 100)
-
+        
         if percentage < 40:
             message = "Tu ferais mieux de chercher une autre personne."
         elif percentage > 50:
             message = "Oh, on dirait que j'aperçois une lueur d'amour, tu devrais tenter ta chance !"
         else:
             message = "Hum, c'est difficile à dire... Peut-être que ça pourrait marcher, qui sait ?"
-
+        
         embed = disnake.Embed(
             title=f"**Compatibilité Amoureuse :** {ctx.author.name} x {user.name}",
             description=f"Compatibilité : {percentage}%\n{message}",
@@ -568,7 +570,7 @@ async def match(ctx, option=None, user: disnake.Member = None):
 
     else:
         await ctx.send("Veuillez utiliser `.match @utilisateur` ou `.match random`.")
-
+        
 @bot.command()
 async def joke(ctx):
     url = "https://v2.jokeapi.dev/joke/Programming,Miscellaneous,Pun,Spooky,Christmas?lang=fr"
@@ -624,6 +626,20 @@ async def roll(ctx, max_value: int):
     roll = random.randint(1, max_value)
     embed = disnake.Embed(title="Lancer de dé", description=f"Tu as lancé un dé et obtenu : **{roll}**", color=disnake.Color.dark_gray())
     await ctx.send(embed=embed)
+    
+app = Flask('')
 
+@app.route('/')
+def main():
+    return f"Logged in as {bot.user}."
 
-bot.run(os.getenv('TOKEN'))
+def run():
+    app.run(host="0.0.0.0", port=8080)
+
+def keep_alive():
+    server = Thread(target=run)
+    server.start()
+
+keep_alive()
+
+bot.run(os.gentenv('TOKEN'))
