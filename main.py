@@ -642,4 +642,4 @@ def keep_alive():
 
 keep_alive()
 
-bot.run(os.gentenv('TOKEN'))
+bot.run(os.getenv('TOKEN'))
