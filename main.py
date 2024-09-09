@@ -15,22 +15,6 @@ intents = disnake.Intents.default()
 intents.message_content = True
 intents.members = True
 
-FFMPEG_PATH = "bin/ffmpeg.exe"
-
-coins_data = {}
-last_messages = {}
-last_voice_times = {}
-
-FILE_CHANNEL_NAME = "📁〃file-coins"
-NOTIFICATION_CHANNEL_NAME = "🧈〃rysle"
-SPECIAL_ROLE_NAME = "🥥〢Membre Elite"
-SPECIAL_ROLE_THRESHOLD = 80000
-SAVE_INTERVAL = 5  # En secondes
-VOICE_COIN_RATE = 4  # Coins gagnés par minute en vocal
-XP_PER_COIN = 1  # XP gagné par rysle
-REPUTATION_LEVEL_UP_THRESHOLD = 100  # XP pour niveau supérieur
-
-
 bot = commands.Bot(command_prefix='.', intents=intents, help_command=None)
 
 pokedex_data = {}
@@ -138,6 +122,15 @@ _ _                       **<@906923111075676211>** *!*
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}.")
+    await bot.change_presence(
+        status=disnake.Status.online,
+        activity=disnake.Activity(
+            type=disnake.ActivityType.streaming,
+            name=".help & created by Mxtsouko", 
+            url='https://www.twitch.tv/mxtsouko666'
+        )
+    )
+
     spawn_pokemon.start()
     
 @bot.event
@@ -145,16 +138,24 @@ async def on_message(message):
     if message.author == bot.user:
         return
     
-    em = disnake.Embed(description=Pub)
     
-    if "/Taverne/pub" in message.content:
-        await message.channel.send(content=message.author.mention, embed=em)
+    if "/Taverne/Pub" in message.content:
+        await message.channel.send(content=message.author.mention)
+        await message.channel.send(Pub)
         
-    em1 = disnake.Embed(description=HList)
         
     if "/Taverne/Hierarchie" in message.content:
-        await message.channel.send(content=message.author.mention, embed=em1)
-    
+        await message.channel.send(content=message.author.mention)
+        await message.channel.send(HList)
+        
+    if "Bonjour" in message.content:
+        await message.channel.send(f"Bonjour {message.author.mention} <:coucouw:1282620654788542509>")
+
+    if "Salut" in message.content:
+        await message.channel.send(f"Salut {message.author.mention} <:coucouw:1282620654788542509>")
+        
+    if "Coucou" in message.content:
+        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>")
     
     if isinstance(message.channel, disnake.DMChannel) and message.author != bot.user:
         guild = disnake.utils.get(bot.guilds, name="La Taverne 🍻")
