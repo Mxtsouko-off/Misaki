@@ -55,69 +55,6 @@ async def spawn_pokemon():
             await channel.send("https://media.discordapp.net/attachments/1281045310310711358/1281158205405270080/loading-6324_256.gif")
             await channel.send(embed=embed)
 
-HList = '''
-_ _                           [**/Taverne/Hierarchie**](https://media.discordapp.net/attachments/1280352059031425035/1282095507841351692/1af689d42bdb7686df444f22925f9e89.gif?ex=66de1bfd&is=66dcca7d&hm=2101c534687cb4eab0396f632e53817f56db5fcbf0175b0304ebd375abd39c2b&=&width=1193&height=671) *!*
-
-_ _               *<a:crown:1282643136769818634>*   **<@&1251491671124738173>** *:* 
-
-_ _                            **<@723256412674719795>** *!*
-
-_ _               *<:btp_modcheck:1282655495102140479>*   **<@&1268647331679440984>** *:* 
-
-_ _                            **<@921804723814821938>** *!*
-
-_ _                            **<@1006617500735262831> ** *!*
-
-_ _                       **Attente de promotion** *!*
-
-_ _               **  <:emoji_16:1282655193036492800>  **<@&1251840088032280668>** *:* 
-
-_ _                       **Attente de promotion** *!*
-
-_ _                       **Attente de promotion** *!*
-
-_ _               ** <:rules:1282653518536114247>   ** <@&1268649746797428808> ** *:* 
-
-_ _                       **Attente de promotion** *!*
-
-_ _                       **Attente de promotion** *!*
-
-_ _               **  <:ges:1282654867034476544>   ** <@&1268649426470043738>  ** *:* 
-
-_ _                       **Attente de promotion** *!*
-
-_ _                       **Attente de promotion** *!*
-
-_ _               **  <:Poll:1282654452247166986>   ** <@&1251840576651792417>   ** *:* 
-
-_ _                       **Attente de promotion** *!*
-
-_ _                       **Attente de promotion** *!*
-
-_ _               **   <:dead_chat:1282653838947520552>  ** <@&1251839752886554666>   ** *:* 
-
-_ _                       ** <@1256468729512984707>** *!*
-
-_ _                       **Attente de promotion** *!*
-
-_ _               **  <:emoji_23:1282655169678413837>   ** <@&1282336844159127593>   ** *:* 
-
-_ _                       ** <@1256468729512984707>** *!*
-
-_ _                       **Attente de promotion** *!*
-
-_ _               **  <a:partner:1282620579551379508>    ** <@&1280429826414477373>    ** *:* 
-
-_ _                       ** <@1256468729512984707>** *!*
-
-_ _                       **Attente de promotion** *!*
-
-_ _               **  <:dead_chat:1282653838947520552>    ** <@&1251840313891491881>     ** *:* 
-
-_ _                       ** <@1206290059633106985> ** *!*
-
-_ _                       **<@906923111075676211>** *!*
-'''
 
 @bot.event
 async def on_ready():
@@ -133,6 +70,8 @@ async def on_ready():
 
     spawn_pokemon.start()
     
+    bot.load_extension('cogs.quest')
+    
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -146,7 +85,7 @@ async def on_message(message):
         
     if "/Taverne/Hierarchie" in message.content:
         await message.channel.send(content=message.author.mention)
-        await message.channel.send(HList)
+        await message.channel.send("https://discord.com/channels/1251476405112537148/1268870540794269698")
         
     if "Bonjour" in message.content:
         await message.channel.send(f"Bonjour {message.author.mention} <:coucouw:1282620654788542509>")
