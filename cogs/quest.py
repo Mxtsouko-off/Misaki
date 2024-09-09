@@ -2,14 +2,28 @@ import disnake
 from disnake.ext import commands, tasks
 import random
 import json
-import aiohttp
+import requests
 
 class Quest(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
         self.questions = []
-        self.load_questions.start()  # Démarrer la tâche pour charger les questions
+        self.load_questions()
+
+    def load_questions(self):
+        try:
+            response = requests.get('https://raw.githubusercontent.com/Mxtsouko-off/Misaki/main/Json/question.json')
+            if response.status_code == 200:
+                data = response.json()
+                self.questions = [item['question'] for item in data]
+                print(f"{len(self.questions)} questions chargées.")  
+                print("Questions are loaded.")  
+                self.send_random_question.start()  
+            else:
+                print(f"Erreur lors du chargement des questions: {response.status_code}")
+        except Exception as e:
+            print(f"Une erreur s'est produite lors du chargement des questions: {e}")
 
     @tasks.loop(hours=5) 
     async def send_random_question(self):
@@ -23,7 +37,7 @@ class Quest(commands.Cog):
             except Exception as e:
                 print(f"Erreur lors de la purge des messages: {e}")
 
-            if self.questions:  # Vérifier si des questions sont disponibles
+            if self.questions:  
                 question = random.choice(self.questions)
                 embed = disnake.Embed(
                     title="Question du jour",
@@ -35,21 +49,6 @@ class Quest(commands.Cog):
 
     @send_random_question.before_loop
     async def before_send_random_question(self):
-        await self.bot.wait_until_ready()
-
-    @tasks.loop(count=1)  # Charge les questions une seule fois
-    async def load_questions(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get('https://raw.githubusercontent.com/Mxtsouko-off/Misaki/main/Json/question.json') as response:
-                if response.status == 200:
-                    data = await response.json()
-                    self.questions = [item['question'] for item in data]
-                    print(f"{len(self.questions)} questions chargées.")
-                else:
-                    print(f"Erreur lors du chargement des questions: {response.status}")
-
-    @load_questions.before_loop
-    async def before_load_questions(self):
         await self.bot.wait_until_ready()
 
 def setup(bot):
