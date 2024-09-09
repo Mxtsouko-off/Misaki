@@ -71,6 +71,7 @@ async def on_ready():
     spawn_pokemon.start()
     
 bot.load_extension('cogs.quest')
+bot.load_extension('cogs.anime_vote')
     
 @bot.event
 async def on_message(message):
