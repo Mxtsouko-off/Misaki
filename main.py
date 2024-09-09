@@ -164,8 +164,44 @@ async def help(ctx):
         value="Utilisez cette commande pour savoir le pourcentage d'amour que vous avez avec un membre aleatoire du serveur.",
         inline=False
     )
+    
+    embed1.add_field(
+        name=".joke",
+        value="Utilisez cette commande pour faire apparaitre une blague.",
+        inline=False
+    )
+    
+    embed1.add_field(
+        name=".rps pierre ou ciseaux ou papier",
+        value="Utilisez cette commande pour faire pierre papier ciseaux avec misaki.",
+        inline=False
+    )
 
-
+    embed1.add_field(
+        name=".cat",
+        value="Utilisez cette commande pour faire apparaitre un chat mignon.",
+        inline=False
+    )
+    
+    embed1.add_field(
+        name=".dog",
+        value="Utilisez cette commande pour faire apparaitre un chien mignon.",
+        inline=False
+    )
+    
+    embed1.add_field(
+        name=".coinflip pile ou face",
+        value="Utilisez cette commande pour faire un pile ou face avec misaki.",
+        inline=False
+    )
+    
+    embed1.add_field(
+        name=".roll nombre",
+        value="Utilisez cette commande pour faire un lancer de dé.",
+        inline=False
+    )
+    
+    
     await ctx.send(embed=embed)
     await ctx.send(embed=embed1)
 
