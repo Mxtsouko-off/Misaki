@@ -70,7 +70,7 @@ async def on_ready():
 
     spawn_pokemon.start()
     
-bot.load_extension('cogs.quest')
+    bot.load_extension('cogs.quest')
     
 @bot.event
 async def on_message(message):
