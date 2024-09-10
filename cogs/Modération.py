@@ -187,7 +187,6 @@ class Moderation(commands.Cog):
         else:
             await ctx.send("Le canal de bilan spécifié n'existe pas.")
 
-    # Définir les rôles pour la promotion
     PROMOTION_ROLES = {
         "Gestion Serveur": ['📖〢Gestion Serveur', '📂〢Staff', '📂〢Haut staff'],
         "Manager": ['⚙️〢Manager', '📂〢Staff', '📂〢Haut staff'],
@@ -199,23 +198,25 @@ class Moderation(commands.Cog):
         "Interim": ['🎇〢Interim', '📂〢Staff']
     }
 
-    # Commande pour promouvoir un membre
-    @commands.command(name='promouvoir', description='Promouvoir un membre')
-    @commands.has_role('📖〢Gestion Serveur')
-    async def promouvoir(self, ctx, membre: disnake.Member, role: str):
-        roles_to_give = self.PROMOTION_ROLES.get(role)
+@commands.slash_command(name='promouvoir', description='Promouvoir un membre')
+@commands.has_role('📖〢Gestion Serveur')
+async def promouvoir(self, ctx, membre: disnake.Member, role:str):
+    roles_to_give = self.PROMOTION_ROLES.get(role)
 
-        if roles_to_give:
-            roles_to_add = [disnake.utils.get(ctx.guild.roles, name=role_name) for role_name in roles_to_give]
+    if roles_to_give:
+        roles_to_add = [disnake.utils.get(ctx.guild.roles, name=role_name) for role_name in roles_to_give]
 
-            if any(role is None for role in roles_to_add):
-                await ctx.response.send_message("Un ou plusieurs rôles spécifiés n'existent pas.", ephemeral=True)
-                return
+        if None in roles_to_add:
+            await ctx.response.send_message("Un ou plusieurs rôles spécifiés n'existent pas.", ephemeral=True)
+            return
 
-            await membre.add_roles(*roles_to_add)
-            await ctx.response.send_message(f"{membre.mention} a été promu au rôle {role}.", ephemeral=True)
-        else:
-            await ctx.response.send_message(f"Rôle {role} invalide.", ephemeral=True)
+        await membre.add_roles(*roles_to_add)
+        await ctx.response.send_message(f"{membre.mention} a été promu au rôle {role}.", ephemeral=True)
+    else:
+        await ctx.response.send_message(f"Rôle {role} invalide.", ephemeral=True)
+
+
+
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
