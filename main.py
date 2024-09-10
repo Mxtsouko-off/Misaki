@@ -32,6 +32,7 @@ bot.load_extension('cogs.poke')
 bot.load_extension('cogs.Utility')
 bot.load_extension('cogs.quest')
 bot.load_extension('cogs.anime_vote')
+bot.load_extension('cogs.Modération')
     
 @bot.event
 async def on_message(message):
