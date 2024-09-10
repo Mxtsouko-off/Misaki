@@ -198,23 +198,22 @@ class Moderation(commands.Cog):
         "Interim": ['🎇〢Interim', '📂〢Staff']
     }
 
-@commands.slash_command(name='promouvoir', description='Promouvoir un membre')
-@commands.has_role('📖〢Gestion Serveur')
-async def promouvoir(self, ctx, membre: disnake.Member, role:str):
-    roles_to_give = self.PROMOTION_ROLES.get(role)
+    @commands.command(name='promouvoir', description='Promouvoir un membre')
+    @commands.has_role('📖〢Gestion Serveur')  
+    async def promouvoir(self, ctx, membre: disnake.Member, role: str):
+        roles_to_give = self.PROMOTION_ROLES.get(role)
 
-    if roles_to_give:
-        roles_to_add = [disnake.utils.get(ctx.guild.roles, name=role_name) for role_name in roles_to_give]
+        if roles_to_give:
+            roles_to_add = [disnake.utils.get(ctx.guild.roles, name=role_name) for role_name in roles_to_give]
 
-        if None in roles_to_add:
-            await ctx.response.send_message("Un ou plusieurs rôles spécifiés n'existent pas.", ephemeral=True)
-            return
+            if None in roles_to_add:
+                await ctx.send("Un ou plusieurs rôles spécifiés n'existent pas.", delete_after=5)
+                return
 
-        await membre.add_roles(*roles_to_add)
-        await ctx.response.send_message(f"{membre.mention} a été promu au rôle {role}.", ephemeral=True)
-    else:
-        await ctx.response.send_message(f"Rôle {role} invalide.", ephemeral=True)
-
+            await membre.add_roles(*roles_to_add)
+            await ctx.send(f"{membre.mention} a été promu au rôle {role}.")
+        else:
+            await ctx.send(f"Rôle {role} invalide.", delete_after=5)
 
 
 
