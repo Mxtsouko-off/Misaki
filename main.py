@@ -10,7 +10,7 @@ import aiohttp
 from flask import Flask
 from threading import Thread
 
-intents = disnake.Intents.default()
+intents = disnake.Intents.all()
 intents.message_content = True
 intents.members = True
 
@@ -25,7 +25,7 @@ async def on_ready():
         activity=disnake.Activity(
             type=disnake.ActivityType.streaming,
             name=".help & created by Mxtsouko", 
-            url='https://www.twitch.tv/mxtsouko666'
+            url='https://www.twitch.tv/mxtsouko'
         )
     )
 bot.load_extension('cogs.poke')
@@ -35,7 +35,8 @@ bot.load_extension('cogs.anime_vote')
 bot.load_extension('cogs.Modération')
 bot.load_extension('cogs.Owner')
 bot.load_extension('cogs.Fivem')
-    
+bot.load_extension('cogs.Task')
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -59,6 +60,8 @@ async def on_message(message):
         
     if "Coucou" in message.content:
         await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>")
+        
+    
     
     if isinstance(message.channel, disnake.DMChannel) and message.author != bot.user:
         guild = disnake.utils.get(bot.guilds, name="La Taverne 🍻")
@@ -240,9 +243,31 @@ async def help(ctx):
         value="Utilisez cette commande pour promouvoir un membre .",
         inline=False
     )
+    embed3 = disnake.Embed(
+        title="**Owner (Mxtsouko)** - Commandes",
+        description="Voici les commandes disponibles pour La Modération de **La Taverne**",
+        color=disnake.Color.green()
+    )
+    
+    embed3.add_field(
+        name=".banner channel link",
+        value="Utilisez cette commande pour rajouter une banniere dans nos banniere.",
+        inline=False
+    )
+    embed3.add_field(
+        name=".logo channel link",
+        value="Utilisez cette commande pour rajouter un logo dans nos logo.",
+        inline=False
+    )
+    embed3.add_field(
+        name=".minia channel link",
+        value="Utilisez cette commande pour rajouter une miniature dans nos miniature.",
+        inline=False
+    )
     await ctx.send(embed=embed)
     await ctx.send(embed=embed1)
     await ctx.send(embed=embed2)
+    await ctx.send(embed=embed3)
 
 
         
