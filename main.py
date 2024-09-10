@@ -240,6 +240,8 @@ async def help(ctx):
     )
     await ctx.send(embed=embed)
     await ctx.send(embed=embed1)
+    await ctx.send(embed=embed2)
+
 
         
 Pub = '''
