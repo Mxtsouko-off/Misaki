@@ -33,6 +33,8 @@ bot.load_extension('cogs.Utility')
 bot.load_extension('cogs.quest')
 bot.load_extension('cogs.anime_vote')
 bot.load_extension('cogs.Modération')
+bot.load_extension('cogs.Owner')
+bot.load_extension('cogs.Fivem')
     
 @bot.event
 async def on_message(message):
@@ -234,7 +236,7 @@ async def help(ctx):
         inline=False
     )
     embed2.add_field(
-        name=".promouvoir @utilisateur ",
+        name="/promouvoir @utilisateur ",
         value="Utilisez cette commande pour promouvoir un membre .",
         inline=False
     )
