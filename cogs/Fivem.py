@@ -12,26 +12,34 @@ class Fivem(commands.Cog):
 
     @commands.command(name='fivemlookup', help="Recherche un serveur FiveM par son tag")
     async def fivemlookup(self, ctx, tag: str):
-            urlfivem = f"https://servers-frontend.fivem.net/api/servers/single/{tag}"
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.3",
-            }
+        urlfivem = f"https://servers-frontend.fivem.net/api/servers/single/{tag}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.3",
+        }
 
-            async with aiohttp.ClientSession() as session:
-                async with session.get(urlfivem, headers=headers) as res:
-                    if res.status == 404:
-                        await ctx.send("Le tag fourni est invalide.")
-                    else:
-                        data = await res.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.get(urlfivem, headers=headers) as res:
+                if res.status == 403:
+                    await ctx.send("Accès interdit (403). Impossible d'obtenir les informations du serveur.")
+                    return
+                elif res.status == 404:
+                    await ctx.send("Le tag fourni est invalide.")
+                    return
+                elif res.status != 200:
+                    await ctx.send(f"Erreur lors de la récupération des données (Code: {res.status}).")
+                    return
+                
+                if res.content_type != 'application/json':
+                    await ctx.send("La réponse obtenue n'est pas au format JSON attendu.")
+                    return
 
+                data = await res.json()
+                json_data = json.dumps(data, indent=4)
+                json_file = io.BytesIO(json_data.encode('utf-8'))
 
-                        json_data = json.dumps(data, indent=4) 
-                        json_file = io.BytesIO(json_data.encode('utf-8'))   
-
-                        dm_channel = await ctx.author.create_dm()
-                        await dm_channel.send("Voici les informations du serveur FiveM que vous avez demandées.", file=disnake.File(fp=json_file, filename=f"fivem_data_{tag}.json"))
-                        
-                        await ctx.send(f"Les informations sur le serveur {tag} ont été envoyées en message privé.")
+                dm_channel = await ctx.author.create_dm()
+                await dm_channel.send("Voici les informations du serveur FiveM que vous avez demandées.", file=disnake.File(fp=json_file, filename=f"fivem_data_{tag}.json"))
+                await ctx.send(f"Les informations sur le serveur {tag} ont été envoyées en message privé.")
 
     @commands.command(name='cip', help="Obtenir l'IP et le port d'un serveur FiveM")
     async def cip(self, ctx, tag: str):
