@@ -200,8 +200,43 @@ async def help(ctx):
         value="Utilisez cette commande pour faire un lancer de dé.",
         inline=False
     )
+
+    embed2 = disnake.Embed(
+        title="**Modération** - Commandes",
+        description="Voici les commandes disponibles pour La Modération de **La Taverne**",
+        color=disnake.Color.green()
+    )
     
-    
+    embed2.add_field(
+        name=".supension @utilisateur 1 d",
+        value="Utilisez cette commande pour suspendre un membre du staff.",
+        inline=False
+    )
+    embed2.add_field(
+        name=".réunion date heure",
+        value="Utilisez cette commande pour organisé une réunion staff staff.",
+        inline=False
+    )
+    embed2.add_field(
+        name=".ban @utilisateur raison",
+        value="Utilisez cette commande pour bannir un membre.",
+        inline=False
+    )
+    embed2.add_field(
+        name=".tempban @utilisateur time unit raison",
+        value="Utilisez cette commande pour bannir un membre temporaorement.",
+        inline=False
+    )
+    embed2.add_field(
+        name=".rm_staff @utilisateur pleinte",
+        value="Utilisez cette commande pour faire une remarque sur un membre du staff.",
+        inline=False
+    )
+    embed2.add_field(
+        name=".promouvoir @utilisateur ",
+        value="Utilisez cette commande pour promouvoir un membre .",
+        inline=False
+    )
     await ctx.send(embed=embed)
     await ctx.send(embed=embed1)
 
