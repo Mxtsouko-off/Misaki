@@ -36,6 +36,7 @@ bot.load_extension('cogs.Modération')
 bot.load_extension('cogs.Owner')
 bot.load_extension('cogs.Fivem')
 bot.load_extension('cogs.Task')
+bot.load_extension('cogs.StaffStat')
 
 @bot.event
 async def on_message(message):
