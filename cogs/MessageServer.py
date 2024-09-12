@@ -21,12 +21,12 @@ class MessageServer(commands.Cog):
         em.add_field(name="Vérification:", value="Votre serveur sera vérifié avant de publier votre pub. Si vous cachez un everyone, vous serez sur notre blacklist.", inline=False)
         
         if channel:
-            asyncio.sleep(3)
-            channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e2818f&is=66e1300f&hm=9afa8257e50733f4c7670d94d261c8d7e61c15bc50822a35db913495821b21c2&=')
-            asyncio.sleep(3)
-            channel.send(embed=em_img)
-            asyncio.sleep(3)
-            channel.send(embed=em)
+            await asyncio.sleep(3)
+            await channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e2818f&is=66e1300f&hm=9afa8257e50733f4c7670d94d261c8d7e61c15bc50822a35db913495821b21c2&=')
+            await asyncio.sleep(3)
+            await channel.send(embed=em_img)
+            await asyncio.sleep(3)
+            await channel.send(embed=em)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -36,20 +36,16 @@ class MessageServer(commands.Cog):
         
         em = disnake.Embed(title='Reglement', color=disnake.Colour.dark_gray())
         em.add_field(name='Tos', value='Nous vous demandons de respecter les tos discord', inline=False)
-        em.add_field(name='Interdiction:', value="1. D'insulter, d'imposer vos religion au autre chacun est libre, manque de respect au staff, toute sorte de discrimination est interdites",
-                     inline=False)
-        em.add_field(name="Acte Méritent un Bannisement:", value="Dox,phishing ou toute forme de hack", inline=False)
+        em.add_field(name='Interdiction:', value="1. D'insulter, d'imposer vos religion au autre chacun est libre, manque de respect au staff, toute sorte de discrimination est interdites", inline=False)
+        em.add_field(name="Acte Méritent un Bannisement:", value="Dox, phishing ou toute forme de hack", inline=False)
 
-        
         if channel:
-            asyncio.sleep(3)
-            channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e2818f&is=66e1300f&hm=9afa8257e50733f4c7670d94d261c8d7e61c15bc50822a35db913495821b21c2&=')
-            asyncio.sleep(3)
-            channel.send(embed=em_img)
-            asyncio.sleep(3)
-            channel.send(embed=em)
-
-
+            await asyncio.sleep(3)
+            await channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e2818f&is=66e1300f&hm=9afa8257e50733f4c7670d94d261c8d7e61c15bc50822a35db913495821b21c2&=')
+            await asyncio.sleep(3)
+            await channel.send(embed=em_img)
+            await asyncio.sleep(3)
+            await channel.send(embed=em)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -60,14 +56,15 @@ class MessageServer(commands.Cog):
         em = disnake.Embed(title='Nous Soutenir `🔎`', color=disnake.Colour.dark_gray())
         em.add_field(name='/Taverne dans votre statut', value='Obtenez le rôle <@&1251588659015192607>', inline=False)
         em.add_field(name='Boostez le serveur', value='Obtenez le rôle <@&1256932646903091291> et ses avantages : https://discord.com/channels/1251476405112537148/1268927834714542183', inline=False)
-        
+
         if channel:
-            asyncio.sleep(3)
-            channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e2818f&is=66e1300f&hm=9afa8257e50733f4c7670d94d261c8d7e61c15bc50822a35db913495821b21c2&=')
-            asyncio.sleep(3)
-            channel.send(embed=em_img)
-            asyncio.sleep(3)
-            channel.send(embed=em)
+            await asyncio.sleep(3)
+            await channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e2818f&is=66e1300f&hm=9afa8257e50733f4c7670d94d261c8d7e61c15bc50822a35db913495821b21c2&=')
+            await asyncio.sleep(3)
+            await channel.send(embed=em_img)
+            await asyncio.sleep(3)
+            await channel.send(embed=em)
+
 
 def setup(bot):
     bot.add_cog(MessageServer(bot))
