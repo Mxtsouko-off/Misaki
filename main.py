@@ -334,13 +334,10 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-class Commands(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
 
-    @commands.command()
-    @commands.has_permissions(administrator=True)
-    async def partner(self, ctx, channel: disnake.TextChannel):
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def partner(self, ctx, channel: disnake.TextChannel):
         embed_image = disnake.Embed(color=disnake.Colour.dark_gray())
         embed_image.set_image(url='...')
 
@@ -353,9 +350,9 @@ class Commands(commands.Cog):
             await channel.send(embed=embed_image)
             await channel.send(embed=embed)
 
-    @commands.command()
-    @commands.has_permissions(administrator=True)
-    async def reglement(self, ctx, channel: disnake.TextChannel):
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def reglement(self, ctx, channel: disnake.TextChannel):
         embed = disnake.Embed(title="Règlement du Serveur", color=disnake.Color.green())
         embed.add_field(name="Règle 1", value="Soyez respectueux envers les autres membres.", inline=False)
         embed.add_field(name="Règle 2", value="Pas de spam ni de publicité non autorisée.", inline=False)
@@ -366,9 +363,9 @@ class Commands(commands.Cog):
         if channel:
             await channel.send(embed=embed)
 
-    @commands.command()
-    @commands.has_permissions(administrator=True)
-    async def soutien(self, ctx, channel: disnake.TextChannel):
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def soutien(self, ctx, channel: disnake.TextChannel):
         embed = disnake.Embed(title="Soutien", color=disnake.Color.blue())
         embed.add_field(name="Aide", value="Pour toute demande de soutien, veuillez contacter un modérateur.", inline=False)
         embed.add_field(name="Ressources", value="Vous pouvez consulter le canal de support pour des ressources supplémentaires.", inline=False)
@@ -378,7 +375,7 @@ class Commands(commands.Cog):
             await channel.send(embed=embed)
 
 
-@commands.command(name='suspension', description='Permet de suspendre un membre du staff')
+@bot.command(name='suspension', description='Permet de suspendre un membre du staff')
 @commands.has_role('📖〢Gestion Serveur')
 async def suspension(ctx, membre: disnake.Member, temps: str):
     time_mapping = {
@@ -421,7 +418,7 @@ async def suspension(ctx, membre: disnake.Member, temps: str):
     await ctx.send(f"La suspension de {membre.mention} est terminée.", ephemeral=True)
 
 
-@commands.command(name='réunion', description='Organiser une réunion staff')
+@bot.command(name='réunion', description='Organiser une réunion staff')
 @commands.has_any_role('📖〢Gestion Serveur', '📂〢Haut staff')
 async def réunion(ctx, date: str, heures: str):
     channel = disnake.utils.get(ctx.guild.text_channels, name='💠〃réunion')  
@@ -443,7 +440,7 @@ async def réunion(ctx, date: str, heures: str):
     await ctx.send(f"Réunion organisée pour le {date} à {heures}.", delete_after=3)
 
 
-@commands.command(name='ban', description='Bannir un utilisateur')
+@bot.command(name='ban', description='Bannir un utilisateur')
 @commands.has_permissions(administrator=True)
 async def ban(ctx, member: disnake.Member, *, reason=None):
     if member == ctx.author:
@@ -460,7 +457,7 @@ async def ban(ctx, member: disnake.Member, *, reason=None):
     await ctx.send(embed=embed)
 
 
-@commands.command(name='tempban', description='Bannir temporairement un utilisateur')
+@bot.command(name='tempban', description='Bannir temporairement un utilisateur')
 @commands.has_permissions(administrator=True)
 async def tempban(ctx, member: disnake.Member, time: int, unit: str, *, reason=None):
     if member == ctx.author:
@@ -502,7 +499,7 @@ async def ban_error(ctx, error):
         await ctx.send("Une erreur est survenue.")
 
 
-@commands.command(name='rm_staff', description='Enregistrer une plainte contre un membre du staff')
+@bot.command(name='rm_staff', description='Enregistrer une plainte contre un membre du staff')
 @commands.has_role('📂〢Staff')
 async def rm_staff(ctx, membre: disnake.Member, plainte: str):
     guild = ctx.guild
@@ -529,7 +526,7 @@ PROMOTION_ROLES = {
     "Interim": ['🎇〢Interim', '📂〢Staff']
 }
 
-@commands.command(name='promouvoir', description='Promouvoir un membre')
+@bot.command(name='promouvoir', description='Promouvoir un membre')
 @commands.has_role('📖〢Gestion Serveur')  
 async def promouvoir(ctx, membre: disnake.Member, role: str):
     roles_to_give = PROMOTION_ROLES.get(role)
