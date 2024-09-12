@@ -45,6 +45,7 @@ async def on_ready():
     send_random_question.start()
     spawn_pokemon.start
     update_staff_status.start()
+    remind_bumping.start()
     load_animes()  
     if not anime_vote_task.is_running():  
         anime_vote_task.start()  
@@ -53,11 +54,7 @@ async def on_ready():
 
 async def load_cogs():
     cogs = [
-        'cogs.Utility',
-        'cogs.Modération',
-        'cogs.Owner',
-        'cogs.Fivem',
-        'cogs.MessageServer'
+        'cogs.Utility'
     ]
 
     for cog in cogs:
