@@ -9,7 +9,7 @@ class StaffStatus(commands.Cog):
         self.role_name = "📂〢Staff" 
         self.update_staff_status.start()
 
-    @tasks.loop(seconds=1)
+    @tasks.loop(minutes=3)
     async def update_staff_status(self):
         channel = self.bot.get_channel(self.channel_id)
         if channel is None:

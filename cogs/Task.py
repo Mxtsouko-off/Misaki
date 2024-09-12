@@ -21,7 +21,7 @@ class Task(commands.Cog):
                 )
                 await channel.send(content=role.mention, embed=embed)
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(minutes=3)
     async def check_status(self):
         for guild in self.bot.guilds:
             role = disnake.utils.get(guild.roles, name='🦾〢Soutient Bio')

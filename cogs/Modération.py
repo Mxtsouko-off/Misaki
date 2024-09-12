@@ -106,9 +106,9 @@ class Moderation(commands.Cog):
             em.set_image(url='https://i.ibb.co/dbPZcmV/c92885e55b3f6deb5a626d0e4f984040.gif')
 
             await channel.send(content=f"{role_staff.mention} {role_haut_staff.mention}", embed=em)
-            await ctx.response.send_message(f"Réunion organisée pour le {date} à {heures}.", ephemeral=True)
+            await ctx.response.send_message(f"Réunion organisée pour le {date} à {heures}.", delete_after=3)
         else:
-            await ctx.response.send_message("Le salon de réunion spécifié n'existe pas.", ephemeral=True)
+            await ctx.response.send_message("Le salon de réunion spécifié n'existe pas.", delete_after=3)
 
     # Commande pour bannir un utilisateur
     @commands.command()
