@@ -29,14 +29,23 @@ async def on_ready():
         )
     )
 bot.load_extension('cogs.poke')
+asyncio.sleep(10)
 bot.load_extension('cogs.Utility')
+asyncio.sleep(10)
 bot.load_extension('cogs.quest')
+asyncio.sleep(10)
 bot.load_extension('cogs.anime_vote')
+asyncio.sleep(10)
 bot.load_extension('cogs.Modération')
+asyncio.sleep(10)
 bot.load_extension('cogs.Owner')
+asyncio.sleep(10)
 bot.load_extension('cogs.Fivem')
+asyncio.sleep(10)
 bot.load_extension('cogs.Task')
+asyncio.sleep(10)
 bot.load_extension('cogs.StaffStat')
+asyncio.sleep(10)
 bot.load_extension('cogs.MessageServer')
 
 @bot.event
@@ -266,9 +275,13 @@ async def help(ctx):
         value="Utilisez cette commande pour rajouter une miniature dans nos miniature.",
         inline=False
     )
+    asyncio.sleep(2)
     await ctx.send(embed=embed)
+    asyncio.sleep(3)
     await ctx.send(embed=embed1)
+    asyncio.sleep(4)
     await ctx.send(embed=embed2)
+    asyncio.sleep(5)
     await ctx.send(embed=embed3)
 
 
