@@ -1,12 +1,7 @@
 import disnake
 from disnake.ext import commands, tasks
-import requests
-import random
 import asyncio
 import os
-from datetime import datetime, timedelta
-import json
-import aiohttp
 from flask import Flask
 from threading import Thread
 
@@ -15,7 +10,6 @@ intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix='.', intents=intents, help_command=None)
-
 
 @bot.event
 async def on_ready():
@@ -28,72 +22,32 @@ async def on_ready():
             url='https://www.twitch.tv/mxtsouko'
         )
     )
-bot.load_extension('cogs.poke')
-asyncio.sleep(10)
-bot.load_extension('cogs.Utility')
-asyncio.sleep(10)
-bot.load_extension('cogs.quest')
-asyncio.sleep(10)
-bot.load_extension('cogs.anime_vote')
-asyncio.sleep(10)
-bot.load_extension('cogs.Modération')
-asyncio.sleep(10)
-bot.load_extension('cogs.Owner')
-asyncio.sleep(10)
-bot.load_extension('cogs.Fivem')
-asyncio.sleep(10)
-bot.load_extension('cogs.Task')
-asyncio.sleep(10)
-bot.load_extension('cogs.StaffStat')
-asyncio.sleep(10)
-bot.load_extension('cogs.MessageServer')
-
-@bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
     
-    
-    if "/Taverne/Pub" in message.content:
-        await message.channel.send(content=message.author.mention)
-        await message.channel.send(Pub)
+    # Load extensions only after the bot is ready
+    await load_cogs()
+
+async def load_cogs():
+    cogs = [
+        'cogs.poke',
+        'cogs.Utility',
+        'cogs.quest',
+        'cogs.anime_vote',
+        'cogs.Modération',
+        'cogs.Owner',
+        'cogs.Fivem',
+        'cogs.Task',
+        'cogs.StaffStat',
+        'cogs.MessageServer'
+    ]
+
+    for cog in cogs:
+        try:
+            bot.load_extension(cog)
+            print(f"Successfully loaded {cog}")
+        except Exception as e:
+            print(f"Failed to load {cog}: {e}")
+        await asyncio.sleep(1)  # Add a delay between loading to avoid issues
         
-        
-    if "/Taverne/Hierarchie" in message.content:
-        await message.channel.send(content=message.author.mention)
-        await message.channel.send("https://discord.com/channels/1251476405112537148/1268870540794269698")
-        
-    if "Bonjour" in message.content:
-        await message.channel.send(f"Bonjour {message.author.mention} <:coucouw:1282620654788542509>")
-
-    if "Salut" in message.content:
-        await message.channel.send(f"Salut {message.author.mention} <:coucouw:1282620654788542509>")
-        
-    if "Coucou" in message.content:
-        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>")
-        
-    
-    
-    if isinstance(message.channel, disnake.DMChannel) and message.author != bot.user:
-        guild = disnake.utils.get(bot.guilds, name="La Taverne 🍻")
-        logs_channel = disnake.utils.get(guild.text_channels, name="📁〃logs-misaki")
-
-        if logs_channel is None:
-            return
-
-        warning_message = "⚠️ Attention : cette conversation est retranscrite dans le serveur **La Taverne 🍻**. N'envoyez pas d'informations personnelles."
-        await message.channel.send(warning_message)
-
-        embed = disnake.Embed(
-            title="Nouveau Message Privé",
-            description=f"**Auteur**: {message.author.mention}\n**Contenu**: {message.content}",
-            color=disnake.Color.blue()
-        )
-        await logs_channel.send(embed=embed)
-    
-    await bot.process_commands(message)
-
-
 @bot.command()
 async def help(ctx):
     # Embed pour Poké Game
@@ -285,7 +239,47 @@ async def help(ctx):
     await ctx.send(embed=embed3)
 
 
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    if "/Taverne/Pub" in message.content:
+        await message.channel.send(content=message.author.mention)
+        await message.channel.send(Pub)
+
+    if "/Taverne/Hierarchie" in message.content:
+        await message.channel.send(content=message.author.mention)
+        await message.channel.send("https://discord.com/channels/1251476405112537148/1268870540794269698")
         
+    if "Bonjour" in message.content:
+        await message.channel.send(f"Bonjour {message.author.mention} <:coucouw:1282620654788542509>")
+
+    if "Salut" in message.content:
+        await message.channel.send(f"Salut {message.author.mention} <:coucouw:1282620654788542509>")
+
+    if "Coucou" in message.content:
+        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>")
+
+    if isinstance(message.channel, disnake.DMChannel) and message.author != bot.user:
+        guild = disnake.utils.get(bot.guilds, name="La Taverne 🍻")
+        logs_channel = disnake.utils.get(guild.text_channels, name="📁〃logs-misaki")
+
+        if logs_channel is None:
+            return
+
+        warning_message = "⚠️ Attention : cette conversation est retranscrite dans le serveur **La Taverne 🍻**. N'envoyez pas d'informations personnelles."
+        await message.channel.send(warning_message)
+
+        embed = disnake.Embed(
+            title="Nouveau Message Privé",
+            description=f"**Auteur**: {message.author.mention}\n**Contenu**: {message.content}",
+            color=disnake.Color.blue()
+        )
+        await logs_channel.send(embed=embed)
+
+    await bot.process_commands(message)
+
 Pub = '''
 _ _                               ***/LaTaverne*** ``🍻`` *!*
 
@@ -304,7 +298,7 @@ _ _                                     [``🪭`` **Rejoignez-nous **](https://m
 _ _                                https://discord.gg/x7G3vgx9kK
 '''                
 
-
+# Flask for keeping the bot alive on a server
 app = Flask('')
 
 @app.route('/')
