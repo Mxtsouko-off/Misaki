@@ -337,7 +337,7 @@ async def on_message(message):
 
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def partner(self, ctx, channel: disnake.TextChannel):
+async def partner(ctx, channel: disnake.TextChannel):
         embed_image = disnake.Embed(color=disnake.Colour.dark_gray())
         embed_image.set_image(url='...')
 
@@ -352,7 +352,7 @@ async def partner(self, ctx, channel: disnake.TextChannel):
 
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def reglement(self, ctx, channel: disnake.TextChannel):
+async def reglement(ctx, channel: disnake.TextChannel):
         embed = disnake.Embed(title="Règlement du Serveur", color=disnake.Color.green())
         embed.add_field(name="Règle 1", value="Soyez respectueux envers les autres membres.", inline=False)
         embed.add_field(name="Règle 2", value="Pas de spam ni de publicité non autorisée.", inline=False)
@@ -365,7 +365,7 @@ async def reglement(self, ctx, channel: disnake.TextChannel):
 
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def soutien(self, ctx, channel: disnake.TextChannel):
+async def soutien(ctx, channel: disnake.TextChannel):
         embed = disnake.Embed(title="Soutien", color=disnake.Color.blue())
         embed.add_field(name="Aide", value="Pour toute demande de soutien, veuillez contacter un modérateur.", inline=False)
         embed.add_field(name="Ressources", value="Vous pouvez consulter le canal de support pour des ressources supplémentaires.", inline=False)
