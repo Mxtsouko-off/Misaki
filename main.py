@@ -294,19 +294,19 @@ async def on_message(message):
         await message.channel.send("https://discord.com/channels/1251476405112537148/1268870540794269698")
 
     if "Bonjour" in message.content:
-        await message.channel.send(f"Bonjour {message.author.mention} <:coucouw:1282620654788542509>")
+        await message.channel.send(f"Bonjour {message.author.mention} <:coucouw:1282620654788542509>", after_delete=5)
 
     if "Salut" in message.content:
-        await message.channel.send(f"Salut {message.author.mention} <:coucouw:1282620654788542509>")
+        await message.channel.send(f"Salut {message.author.mention} <:coucouw:1282620654788542509>", after_delete=5)
 
     if "Coucou" in message.content:
-        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>")
+        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>", after_delete=5)
         
     if "Yo" in message.content:
-        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>")
+        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>", after_delete=5)
         
     if "Coucou" in message.content:
-        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>")
+        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>", after_delete=5)
 
 
 
