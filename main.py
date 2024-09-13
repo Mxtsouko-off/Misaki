@@ -285,11 +285,11 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if "/Taverne/Pub" in message.content:
+    if "Notre Pub" in message.content:
         await message.channel.send(content=message.author.mention)
         await message.channel.send(Pub)
 
-    if "/Taverne/Hierarchie" in message.content:
+    if "Hierarchie" in message.content:
         await message.channel.send(content=message.author.mention)
         await message.channel.send("https://discord.com/channels/1251476405112537148/1268870540794269698")
 
@@ -301,6 +301,14 @@ async def on_message(message):
 
     if "Coucou" in message.content:
         await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>")
+        
+    if "Yo" in message.content:
+        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>")
+        
+    if "Coucou" in message.content:
+        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>")
+
+
 
     if isinstance(message.channel, disnake.DMChannel) and message.author != bot.user:
         guild = disnake.utils.get(bot.guilds, name="La Taverne 🍻")
@@ -339,29 +347,54 @@ async def on_message(message):
 @commands.has_permissions(administrator=True)
 async def partner(ctx, channel: disnake.TextChannel):
         embed_image = disnake.Embed(color=disnake.Colour.dark_gray())
-        embed_image.set_image(url='...')
+        embed_image.set_image(url='https://media.discordapp.net/attachments/1280352059031425035/1282095507841351692/1af689d42bdb7686df444f22925f9e89.gif?ex=66e4b37d&is=66e361fd&hm=d47fa94695ca764bc85edc26f2133348bf88347bb8ff2d16563dbd2faf3f7d8c&=&width=1193&height=671')
 
         embed = disnake.Embed(title='Conditions', color=disnake.Colour.dark_gray())
         embed.add_field(name='Membres:', value='Minimum 15 (sans les bots)', inline=False)
-        embed.add_field(name='Partenariat:', value="Pas de serveur NSFW...", inline=False)
+        embed.add_field(name='Partenariat:', value="Pas de serveur NSFW, boutique uniquement, toxique, ou ne respectant pas les ToS. Pas de serveurs pratiquant du ficha, dox ou autres abus.", inline=False)
+        embed.add_field(name='Important:', value="Si vous supprimez notre pub ou quittez le serveur, le partenariat sera annulé, nous ne somme pas obliger de rester sur votre serveur mais vous devez restez sur le notre", inline=False)
+        embed.add_field(name='Mentions:', value="Nous mentionnons uniquement <@&1280683305548906536>. Si votre serveur a moins de 20 membres, vous devez ping everyone.", inline=False)
+        embed.add_field(name='Vérifications:', value="Votre serveur sera vérifié avant de publier votre pub. Si vous cachez un everyone, vous serez sur notre blacklist.", inline=False)
+        
+        class Ticket(disnake.ui.Button):
+            def __init__(self):
+                super().__init__(label="Ticket!", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1270457969146069124")
+                
+        class NotrePub(disnake.ui.Button):
+            def __init__(self):
+                super().__init__(label="Notre Pub!", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1280630287612772496")
 
         if channel:
-            await channel.send('...')
+            view = disnake.ui.View()
+            view.add_item(Ticket())
+            view.add_item(NotrePub())
+            await channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e47bcf&is=66e32a4f&hm=ac7a1faa0c29bd995c61f7e89a7fb9aa9c201b53c4489701885e5dc2f07b57c7&=')
             await channel.send(embed=embed_image)
-            await channel.send(embed=embed)
+            await ctx.send(embed=embed, view=view)
+        
 
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def reglement(ctx, channel: disnake.TextChannel):
-        embed = disnake.Embed(title="Règlement du Serveur", color=disnake.Color.green())
-        embed.add_field(name="Règle 1", value="Soyez respectueux envers les autres membres.", inline=False)
-        embed.add_field(name="Règle 2", value="Pas de spam ni de publicité non autorisée.", inline=False)
-        embed.add_field(name="Règle 3", value="Aucune forme de harcèlement ne sera tolérée.", inline=False)
-        embed.add_field(name="Règle 4", value="Respectez les décisions des modérateurs.", inline=False)
-        embed.add_field(name="Règle 5", value="Amusez-vous et faites-vous des amis!", inline=False)
+async def rules(ctx, channel: disnake.TextChannel):
+    em_img = disnake.Embed()
+    em_img.set_image(url='https://media.discordapp.net/attachments/1280352059031425035/1282095507841351692/1af689d42bdb7686df444f22925f9e89.gif?ex=66e4b37d&is=66e361fd&hm=d47fa94695ca764bc85edc26f2133348bf88347bb8ff2d16563dbd2faf3f7d8c&=&width=1193&height=671')
 
-        if channel:
-            await channel.send(embed=embed)
+    embed = disnake.Embed(title="Règlement du Serveur", color=disnake.Colour.dark_gray())
+    embed.add_field(name="Tos", value="Nous vous demandons de formellement respecter les termes de service de Discord.", inline=False)
+    embed.add_field(name="Interdiction", value="Il est interdit d'insulter les autres utilisateurs, d'imposer vos croyances religieuses. "
+                        "Chacun est libre de ses choix. Le manque de respect et toute forme de discrimination sont strictement interdits.", inline=False)
+    embed.add_field(name="Bannissement", value="Les actes suivants entraîneront un bannissement : toute forme de hacking, phishing, faux cadeaux Nitro, doxing, "
+                        "ou dérangements vocaux.", inline=False)
+    embed.add_field(name="Pub, lien", value="Il est interdit de faire de la publicité sans permission. Vous pouvez toutefois faire une demande de partenariat "
+                        "si vous remplissez les conditions indiquées [ici](https://discord.com/channels/1251476405112537148/1283059386033639465).", inline=False)
+    embed.add_field(name="But", value="Notre serveur a pour but de divertir les membres, de leur apporter du sourire, et de réaliser divers projets à l'avenir.", inline=False)
+    embed.add_field(name="But 2", value="Nous prévoyons de vous offrir une variété de divertissements, y compris des giveaways et des projets uniques.", inline=False)
+
+    if channel:
+        await channel.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e47bcf&is=66e32a4f&hm=ac7a1faa0c29bd995c61f7e89a7fb9aa9c201b53c4489701885e5dc2f07b57c7&=")
+        await channel.send(embed=em_img)
+        await channel.send(embed=embed)
+
 
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -377,7 +410,7 @@ async def soutien(ctx, channel: disnake.TextChannel):
 
 @bot.command(name='suspension', description='Permet de suspendre un membre du staff')
 @commands.has_role('📖〢Gestion Serveur')
-async def suspension(ctx, membre: disnake.Member, temps: str):
+async def suspend(ctx, membre: disnake.Member, temps: str):
     time_mapping = {
         "s": 1,    
         "m": 60,    
@@ -526,7 +559,7 @@ PROMOTION_ROLES = {
     "Interim": ['🎇〢Interim', '📂〢Staff']
 }
 
-@bot.command(name='promouvoir', description='Promouvoir un membre')
+@bot.command(name='promotion', description='promouvoir un membre')
 @commands.has_role('📖〢Gestion Serveur')  
 async def promouvoir(ctx, membre: disnake.Member, role: str):
     roles_to_give = PROMOTION_ROLES.get(role)
