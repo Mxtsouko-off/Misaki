@@ -11,6 +11,8 @@ import flask
 from flask import Flask
 from threading import Thread
 
+from datetime import datetime, timedelta
+
 
 QUESTION_CHANNEL = "❔〃question-du-jour"
 GUILD_NAME = "La Taverne 🍻"
@@ -372,6 +374,111 @@ async def partner(ctx, channel: disnake.TextChannel):
             await channel.send(embed=embed_image)
             await ctx.send(embed=embed, view=view)
         
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def recrutement(ctx, channel: disnake.TextChannel):
+        embed_image = disnake.Embed(color=disnake.Colour.dark_gray())
+        embed_image.set_image(url='https://media.discordapp.net/attachments/1280352059031425035/1282095507841351692/1af689d42bdb7686df444f22925f9e89.gif?ex=66e4b37d&is=66e361fd&hm=d47fa94695ca764bc85edc26f2133348bf88347bb8ff2d16563dbd2faf3f7d8c&=&width=1193&height=671')
+
+        embed = disnake.Embed(title='Conditions', color=disnake.Colour.dark_gray())
+        embed.add_field(name='Age requis:', value='Minimum 14 ans (nous pouvont faire des exeption)', inline=False)
+        embed.add_field(name='Demandé:', value="Nous vous demandons un minimum de maturité et de courtoisie", inline=False)
+        embed.add_field(name='Important:', value="Nous vous demandons de respecter tous les membre du staff et les membre les manque de respect ne sont pas tolérer", inline=False)
+        embed.add_field(name='Nous recherchons:', value="Des Cm/Gp (Community Manager/Gestion partner), des Modérateur/Animateur et des helpeur, ainsi que des giveur drop et drop manager", inline=False)
+        embed.add_field(name='Vérifications:', value="Vous aller passer une periode de teste de 2 semaine", inline=False)
+        
+        class Ticket(disnake.ui.Button):
+            def __init__(self):
+                super().__init__(label="Ticket!", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1270457969146069124")
+                
+        class NotrePub(disnake.ui.Button):
+            def __init__(self):
+                super().__init__(label="Notre Document!", style=disnake.ButtonStyle.link, url="https://forms.gle/QxWytREs11Q6XzAB6")
+
+        if channel:
+            view = disnake.ui.View()
+            view.add_item(Ticket())
+            view.add_item(NotrePub())
+            await channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e47bcf&is=66e32a4f&hm=ac7a1faa0c29bd995c61f7e89a7fb9aa9c201b53c4489701885e5dc2f07b57c7&=')
+            await channel.send(embed=embed_image)
+            await ctx.send(embed=embed, view=view)
+        
+reputation_data = {
+    723256412674719795: 0 
+}
+
+last_rep_time = {}
+
+def is_admin(ctx):
+    return ctx.author.guild_permissions.administrator
+
+@bot.command()
+async def rep(ctx):
+    user_id = 723256412674719795  
+    author_id = ctx.author.id      
+    now = datetime.now()           
+
+
+    user = await bot.fetch_user(user_id)
+
+    if author_id in last_rep_time:
+        time_since_last_rep = now - last_rep_time[author_id]
+        
+        if time_since_last_rep < timedelta(hours=6):
+            remaining_time = timedelta(hours=6) - time_since_last_rep
+            hours, remainder = divmod(remaining_time.seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            
+            embed = disnake.Embed(title="Temps d'attente", color=disnake.Color.red())
+            embed.set_thumbnail(url=user.avatar.url)
+            embed.add_field(
+                name="Réputation non modifiée",
+                value=f"Vous devez attendre encore {hours} heures, {minutes} minutes avant d'ajouter une nouvelle réputation.",
+                inline=False
+            )
+            return await ctx.send(embed=embed)
+
+    last_rep_time[author_id] = now
+
+    reputation_data[user_id] += 1  
+
+    embed = disnake.Embed(title="Réputation mise à jour", color=disnake.Color.green())
+    embed.set_thumbnail(url=user.avatar.url)  
+    embed.add_field(
+        name="Réputation augmentée",
+        value=f"La réputation de **{user.name}** a été augmentée. Total: {reputation_data[user_id]}",
+        inline=False
+    )
+
+    await ctx.send(embed=embed)
+
+@bot.command()
+@commands.check(is_admin)
+async def moveall(ctx):
+    if ctx.author.voice:  
+        channel = ctx.author.voice.channel
+        for member in ctx.guild.members:
+            if member.voice and member.voice.channel != channel:  
+                await member.move_to(channel)
+        await ctx.send("Tous les utilisateurs ont été déplacés dans votre canal vocal.")
+    else:
+        await ctx.send("Vous devez être dans un salon vocal pour utiliser cette commande.")
+        
+@bot.command()
+async def statrep(ctx):
+    user_id = 723256412674719795
+    user = await bot.fetch_user(user_id)   
+    reputation = reputation_data.get(user_id, 0)  
+
+    embed = disnake.Embed(title=f"Statistiques de {user.name}", color=disnake.Color.green())
+    embed.set_thumbnail(url=user.avatar.url) 
+    embed.add_field(name="Discord:", value=f"{user.name}{user.discriminator}", inline=False)
+    embed.add_field(name="Réputation:", value=reputation, inline=False)
+
+    await ctx.send(embed=embed)
+    
+
+
 
 @bot.command()
 @commands.has_permissions(administrator=True)
