@@ -715,7 +715,12 @@ _ ce qui peut entraîner une perte de valeur sur votre commande. Merci pour votr
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def services(ctx):
-    embed = disnake.Embed(title="`🔎` Nos Services", description="Choisissez une option ci-dessous `📍`", color=disnake.Color.red())
+    embed = disnake.Embed(
+        title="`🔎` Nos Services", 
+        description="Choisissez une option ci-dessous `📍`", 
+        color=disnake.Color.red()
+    )
+    
     options = [
         disnake.SelectOption(label="📕 Nos Exemples", description="Voir nos exemples de graphisme de nos travaux déjà réalisés 🕊️"),
         disnake.SelectOption(label="🔎 Information", description="Obtenir des informations sur nos services 🔎"),
@@ -723,104 +728,190 @@ async def services(ctx):
         disnake.SelectOption(label="📍 Nos Preuves", description="Voir les preuves de nos services 📸")
     ]
     
-    select = disnake.ui.StringSelect(placeholder="Clique ici pour choisir 📕", options=options)
+    select = disnake.ui.StringSelect(
+        placeholder="Clique ici pour choisir 📕", 
+        options=options,
+        custom_id="services_select"
+    )
     
-    async def select_callback(interaction: disnake.MessageInteraction):
+    await ctx.send(embed=embed, components=[select])
+
+
+@bot.event
+async def on_string_select(interaction: disnake.MessageInteraction):
+    if interaction.data.custom_id == "services_select":
+        # Gère les différentes options du menu principal
         if interaction.values[0] == "📕 Nos Exemples":
             await exemples_menu(interaction)
         elif interaction.values[0] == "🔎 Information":
-            embed_info = disnake.Embed(title="`🔎` Information", description=Info, color=disnake.Color.red())
+            embed_info = disnake.Embed(
+                title="`🔎` Information", 
+                description=Info, 
+                color=disnake.Color.red()
+            )
             await interaction.response.send_message(embed=embed_info, ephemeral=True)
         elif interaction.values[0] == "🪷 Nos Services":
             await services_menu(interaction)
         elif interaction.values[0] == "📍 Nos Preuves":
-            embed_preuve = disnake.Embed(title="`📍`Nos Preuves", description="Voici nos preuves. Cliquez sur le bouton ci-dessous pour accéder à notre salon de preuves.", color=disnake.Color.purple())
-            button_proof = disnake.ui.Button(label="Voir le salon de preuves", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1269349648540106852")
+            embed_preuve = disnake.Embed(
+                title="`📍` Nos Preuves", 
+                description="Voici nos preuves. Cliquez sur le bouton ci-dessous pour accéder à notre salon de preuves.", 
+                color=disnake.Color.purple()
+            )
+            button_proof = disnake.ui.Button(
+                label="Voir le salon de preuves", 
+                style=disnake.ButtonStyle.link, 
+                url="https://discord.com/channels/1251476405112537148/1269349648540106852"
+            )
             await interaction.response.send_message(embed=embed_preuve, components=[button_proof], ephemeral=True)
 
-    select.callback = select_callback
-    await ctx.send(embed=embed, components=[select])
 
 async def exemples_menu(interaction: disnake.MessageInteraction):
-    embed = disnake.Embed(title="Nos Exemples", description="Choisissez une catégorie", color=disnake.Color.red())
+    embed = disnake.Embed(
+        title="Nos Exemples", 
+        description="Choisissez une catégorie", 
+        color=disnake.Color.red()
+    )
+    
     options = [
         disnake.SelectOption(label="🎇 Nos Bannières", description="Voir nos bannières"),
         disnake.SelectOption(label="🌸 Nos Logos", description="Voir nos logos")
     ]
     
-    select = disnake.ui.StringSelect(placeholder="Faites un choix", options=options)
+    select = disnake.ui.StringSelect(
+        placeholder="Faites un choix", 
+        options=options,
+        custom_id="exemples_select"
+    )
+    
+    await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
 
-    async def select_callback(interaction: disnake.MessageInteraction):
+
+@bot.event
+async def on_string_select(interaction: disnake.MessageInteraction):
+    # Gère les exemples de bannières ou logos
+    if interaction.data.custom_id == "exemples_select":
         if interaction.values[0] == "🎇 Nos Bannières":
             await bannieres_carrousel(interaction, 0)
         elif interaction.values[0] == "🌸 Nos Logos":
             await logos_carrousel(interaction, 0)
 
-    select.callback = select_callback
-    await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
 
 async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: int):
-    embed = disnake.Embed(title="Nos Bannières", color=disnake.Color.red())
+    embed = disnake.Embed(
+        title="Nos Bannières", 
+        color=disnake.Color.red()
+    )
     embed.set_image(url=banners[index])
     
-    button_previous = disnake.ui.Button(label="Précédent", style=disnake.ButtonStyle.secondary, disabled=(index == 0))
-    button_next = disnake.ui.Button(label="Suivant", style=disnake.ButtonStyle.secondary, disabled=(index == len(banners) - 1))
+    button_previous = disnake.ui.Button(
+        label="Précédent", 
+        style=disnake.ButtonStyle.secondary, 
+        custom_id="previous",
+        disabled=(index == 0)
+    )
+    button_next = disnake.ui.Button(
+        label="Suivant", 
+        style=disnake.ButtonStyle.secondary, 
+        custom_id="next",
+        disabled=(index == len(banners) - 1)
+    )
 
-    async def button_callback(interaction: disnake.MessageInteraction):
-        nonlocal index
-        if interaction.custom_id == "previous":
-            index -= 1
-        elif interaction.custom_id == "next":
-            index += 1
-        await bannieres_carrousel(interaction, index)
-
-    button_previous.callback = button_callback
-    button_next.callback = button_callback
     await interaction.response.edit_message(embed=embed, components=[button_previous, button_next])
+
+
+@bot.event
+async def on_button_click(interaction: disnake.MessageInteraction):
+    # Gère les boutons "Précédent" et "Suivant" pour le carrousel des bannières
+    index = int(interaction.message.embeds[0].footer.text.split()[1])
+    
+    if interaction.custom_id == "previous":
+        index -= 1
+    elif interaction.custom_id == "next":
+        index += 1
+    
+    await bannieres_carrousel(interaction, index)
+
 
 async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
-    embed = disnake.Embed(title="Nos Logos", color=disnake.Color.blue())
+    embed = disnake.Embed(
+        title="Nos Logos", 
+        color=disnake.Color.blue()
+    )
     embed.set_image(url=logos[index])
     
-    button_previous = disnake.ui.Button(label="Précédent", style=disnake.ButtonStyle.secondary, disabled=(index == 0))
-    button_next = disnake.ui.Button(label="Suivant", style=disnake.ButtonStyle.secondary, disabled=(index == len(logos) - 1))
+    button_previous = disnake.ui.Button(
+        label="Précédent", 
+        style=disnake.ButtonStyle.secondary, 
+        custom_id="previous",
+        disabled=(index == 0)
+    )
+    button_next = disnake.ui.Button(
+        label="Suivant", 
+        style=disnake.ButtonStyle.secondary, 
+        custom_id="next",
+        disabled=(index == len(logos) - 1)
+    )
 
-    async def button_callback(interaction: disnake.MessageInteraction):
-        nonlocal index
-        if interaction.custom_id == "previous":
-            index -= 1
-        elif interaction.custom_id == "next":
-            index += 1
-        await logos_carrousel(interaction, index)
-
-    button_previous.callback = button_callback
-    button_next.callback = button_callback
     await interaction.response.edit_message(embed=embed, components=[button_previous, button_next])
 
+
 async def services_menu(interaction: disnake.MessageInteraction):
-    embed = disnake.Embed(title="Nos Services", description="Choisissez un service", color=disnake.Color.red())
+    embed = disnake.Embed(
+        title="Nos Services", 
+        description="Choisissez un service", 
+        color=disnake.Color.red()
+    )
+    
     options = [
         disnake.SelectOption(label="📸 Graphisme", description="Voir nos tarifs pour le graphisme"),
         disnake.SelectOption(label="🪷 Nitro", description="Voir nos tarifs pour les nitro")
     ]
     
-    select = disnake.ui.StringSelect(placeholder="Choisissez un service", options=options)
+    select = disnake.ui.StringSelect(
+        placeholder="Choisissez un service", 
+        options=options,
+        custom_id="services_submenu"
+    )
+    
+    await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
 
-    async def select_callback(interaction: disnake.MessageInteraction):
+
+@bot.event
+async def on_string_select(interaction: disnake.MessageInteraction):
+    if interaction.data.custom_id == "services_submenu":
+        # Gère la sélection des tarifs
         if interaction.values[0] == "📸 Graphisme":
-            embed_tarif_graphisme = disnake.Embed(title="Tarifs Graphisme", description=TarifGraph, color=disnake.Color.red())
-            embed_tarif_graphisme.add_field(name='Ouvre un ticket:', value='https://discord.com/channels/1251476405112537148/1270457969146069124')
-            embed_tarif_graphisme.set_image(url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?format=webp&quality=lossless&width=960&height=320')
+            embed_tarif_graphisme = disnake.Embed(
+                title="Tarifs Graphisme", 
+                description=TarifGraph, 
+                color=disnake.Color.red()
+            )
+            embed_tarif_graphisme.add_field(
+                name='Ouvre un ticket:', 
+                value='https://discord.com/channels/1251476405112537148/1270457969146069124'
+            )
+            embed_tarif_graphisme.set_image(
+                url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?format=webp&quality=lossless&width=960&height=320'
+            )
             await interaction.response.send_message(embed=embed_tarif_graphisme, ephemeral=True)
         elif interaction.values[0] == "🪷 Nitro":
-            embed_tarif_nitro = disnake.Embed(title="Nos Services Nitro", description=TarifNitro, color=disnake.Color.red())
-            embed_tarif_nitro.add_field(name='Ouvre un ticket:', value='https://discord.com/channels/1251476405112537148/1270457969146069124')
-            embed_tarif_nitro.set_image(url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?format=webp&quality=lossless&width=960&height=320')
+            embed_tarif_nitro = disnake.Embed(
+                title="Nos Services Nitro", 
+                description=TarifNitro, 
+                color=disnake.Color.red()
+            )
+            embed_tarif_nitro.add_field(
+                name='Ouvre un ticket:', 
+                value='https://discord.com/channels/1251476405112537148/1270457969146069124'
+            )
+            embed_tarif_nitro.set_image(
+                url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?format=webp&quality=lossless&width=960&height=320'
+            )
             await interaction.response.send_message(embed=embed_tarif_nitro, ephemeral=True)
 
-    select.callback = select_callback
-    await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
-    
+
+
 PunchList = [Gif.Punch1, Gif.Punch2, Gif.Punch3, Gif.Punch4, Gif.Punch5, Gif.Punch6, Gif.Punch7, Gif.Punch8, Gif.Punch9, Gif.Punch10, Gif.Punch11, Gif.Punch12, Gif.Punch13, Gif.Punch14, Gif.Punch15]
 KissList =  [Gif.Kiss1, Gif.Kiss2, Gif.Kiss3, Gif.Kiss4, Gif.Kiss5, Gif.Kiss6, Gif.Kiss7, Gif.Kiss8, Gif.Kiss9, Gif.Kiss10, Gif.Kiss11, Gif.Kiss12, Gif.Kiss13, Gif.Kiss14, Gif.Kiss15]
 HugList = [Gif.Hug1, Gif.Hug2, Gif.Hug3, Gif.Hug4, Gif.Hug5, Gif.Hug6, Gif.Hug7, Gif.Hug8, Gif.Hug9, Gif.Hug10, Gif.Hug11, Gif.Hug12, Gif.Hug13, Gif.Hug14, Gif.Hug15]
