@@ -738,7 +738,6 @@ async def services(ctx):
 
     @select.callback
     async def select_callback(interaction: disnake.MessageInteraction):
-        # Ensure the interaction is valid
         if interaction.user != ctx.author:
             return await interaction.response.send_message("Ce menu n'est pas pour vous.", ephemeral=True)
 
@@ -766,6 +765,7 @@ async def services(ctx):
                 style=disnake.ButtonStyle.link, 
                 url="https://discord.com/channels/1251476405112537148/1269349648540106852"
             )
+            view = disnake.ui.View()
             view.add_item(button_proof)
             await interaction.response.send_message(embed=embed_preuve, view=view, ephemeral=True)
 
@@ -832,12 +832,14 @@ async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: in
 
     @button_previous.callback
     async def previous_callback(interaction: disnake.MessageInteraction):
+        nonlocal index
         if index > 0:
             index -= 1
             await bannieres_carrousel(interaction, index)
 
     @button_next.callback
     async def next_callback(interaction: disnake.MessageInteraction):
+        nonlocal index
         if index < len(banners) - 1:
             index += 1
             await bannieres_carrousel(interaction, index)
@@ -870,12 +872,14 @@ async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
 
     @button_previous.callback
     async def previous_callback(interaction: disnake.MessageInteraction):
+        nonlocal index
         if index > 0:
             index -= 1
             await logos_carrousel(interaction, index)
 
     @button_next.callback
     async def next_callback(interaction: disnake.MessageInteraction):
+        nonlocal index
         if index < len(logos) - 1:
             index += 1
             await logos_carrousel(interaction, index)
