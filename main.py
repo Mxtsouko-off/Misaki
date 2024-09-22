@@ -73,34 +73,11 @@ async def help(ctx):
     )
     
     embed_fun.add_field(
-        name=".cookies @utilisateur",
-        value="Donnez un cookie à un autre utilisateur.",
-        inline=False
-    )
-    
-    embed_fun.add_field(
-        name=".pokeball @utilisateur",
-        value="Utilisez cette commande pour capturer un utilisateur.",
-        inline=False
-    )
-    
-    embed_fun.add_field(
-        name=".teddy @utilisateur",
-        value="Donnez un ours en peluche à un autre utilisateur.",
-        inline=False
-    )
-    
-    embed_fun.add_field(
         name=".murder @utilisateur",
         value="Utilisez cette commande pour 'tuer' un utilisateur pour un chips et un coca.",
         inline=False
     )
 
-    embed_fun.add_field(
-        name=".match random",
-        value="Découvrez le pourcentage d'amour que vous avez avec un membre aléatoire du serveur.",
-        inline=False
-    )
     
     embed_fun.add_field(
         name=".joke",
@@ -177,7 +154,7 @@ async def help(ctx):
     )
     
     embed_moderation.add_field(
-        name="/promouvoir @utilisateur",
+        name=".promouvoir fonction @utilisateur",
         value="Promouvez un membre.",
         inline=False
     )
@@ -185,31 +162,6 @@ async def help(ctx):
     await ctx.send(embed=embed_moderation)
 
 
-    embed_owner = disnake.Embed(
-        title="**Owner (Mxtsouko)** - Commandes",
-        description="Commandes réservées à l'owner.",
-        color=disnake.Color.gold()
-    )
-    
-    embed_owner.add_field(
-        name=".banner channel link",
-        value="Ajoutez une bannière dans nos bannières.",
-        inline=False
-    )
-    
-    embed_owner.add_field(
-        name=".logo channel link",
-        value="Ajoutez un logo dans nos logos.",
-        inline=False
-    )
-    
-    embed_owner.add_field(
-        name=".minia channel link",
-        value="Ajoutez une miniature dans nos miniatures.",
-        inline=False
-    )
-
-    await ctx.send(embed=embed_owner)
 
     
 
@@ -295,22 +247,9 @@ async def on_message(message):
         await message.channel.send(content=message.author.mention)
         await message.channel.send("https://discord.com/channels/1251476405112537148/1268870540794269698")
 
-    if "Bonjour" in message.content:
-        await message.channel.send(f"Bonjour {message.author.mention} <:coucouw:1282620654788542509>", after_delete=5)
-
-    if "Salut" in message.content:
-        await message.channel.send(f"Salut {message.author.mention} <:coucouw:1282620654788542509>", after_delete=5)
-
-    if "Coucou" in message.content:
-        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>", after_delete=5)
-        
-    if "Yo" in message.content:
-        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>", after_delete=5)
-        
-    if "Coucou" in message.content:
-        await message.channel.send(f"Coucou {message.author.mention} <:coucouw:1282620654788542509>", after_delete=5)
-
-
+    salutations = ["Bonjour", "Salut", "Coucou", "Yo"]
+    if any(salutation in message.content for salutation in salutations):
+        await message.channel.send(f"{message.content} {message.author.mention} <:coucouw:1282620654788542509>", delete_after=5)
 
     if isinstance(message.channel, disnake.DMChannel) and message.author != bot.user:
         guild = disnake.utils.get(bot.guilds, name="La Taverne 🍻")
@@ -342,6 +281,7 @@ async def on_message(message):
             return
 
     await bot.process_commands(message)
+
 
 
 
@@ -685,27 +625,7 @@ async def promouvoir(ctx, membre: disnake.Member, role: str):
         await ctx.send(f"Rôle {role} invalide.", delete_after=5)
 
 
-@bot.command(name='banner', description='Ajouter une nouvelle bannière')
-async def banner(ctx, channel: disnake.TextChannel, link: str):
-    utilisateur_autorise = 723256412674719795  
 
-    if ctx.author.id != utilisateur_autorise:
-        await ctx.send("Seule Mxtsouko peut utiliser cette commande.")
-        return
-    
-    if channel:
-        role = disnake.utils.get(channel.guild.roles, name='📣〢Notification Boutique')
-        embed = disnake.Embed(
-            title='Nouvelle bannière ajoutée', 
-            description='Nos bannières sont entièrement faites à la main. Aucun site ou autre, elles sont toutes réalisées par notre graphiste.'
-        )
-        embed.set_image(url=link)
-        embed.set_footer(text=f'Cette bannière a été postée par {ctx.author.name}')
-        await channel.send(content=role.mention, embed=embed)
-
-
-import disnake
-from disnake.ext import commands
 
 banners = [
     "https://media.discordapp.net/attachments/1287467634534776923/1287467675362267267/JdnYHMP.png?ex=66f1a735&is=66f055b5&hm=57920b8135ee12c11386c360b99e94afc6eafc089add5dc3058fa8ab9572812b&=&format=webp&quality=lossless&width=960&height=320",
@@ -792,23 +712,20 @@ _ car nous ne répéterons pas ces détails dans les tickets de support.n**Modes
 _ ce qui peut entraîner une perte de valeur sur votre commande. Merci pour votre compréhension et coopération !
 """
 
-intents = disnake.Intents.all()
-bot = commands.Bot(command_prefix=".", intents=intents)
-
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def services(ctx):
     embed = disnake.Embed(title="`🔎` Nos Services", description="Choisissez une option ci-dessous `📍`", color=disnake.Color.red())
     options = [
-        disnake.SelectOption(label="📕 Nos Exemples", description="Voir nos exemples de graphisme de nos travaux deja réalisé 🕊️"),
+        disnake.SelectOption(label="📕 Nos Exemples", description="Voir nos exemples de graphisme de nos travaux déjà réalisés 🕊️"),
         disnake.SelectOption(label="🔎 Information", description="Obtenir des informations sur nos services 🔎"),
         disnake.SelectOption(label="🪷 Nos Services", description="Voir nos services et tarifs 🪷"),
         disnake.SelectOption(label="📍 Nos Preuves", description="Voir les preuves de nos services 📸")
     ]
     
     select = disnake.ui.StringSelect(placeholder="Clique ici pour choisir 📕", options=options)
-
-    async def callback(interaction: disnake.MessageInteraction):
+    
+    async def select_callback(interaction: disnake.MessageInteraction):
         if interaction.values[0] == "📕 Nos Exemples":
             await exemples_menu(interaction)
         elif interaction.values[0] == "🔎 Information":
@@ -821,7 +738,7 @@ async def services(ctx):
             button_proof = disnake.ui.Button(label="Voir le salon de preuves", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1269349648540106852")
             await interaction.response.send_message(embed=embed_preuve, components=[button_proof], ephemeral=True)
 
-    select.callback = callback
+    select.callback = select_callback
     await ctx.send(embed=embed, components=[select])
 
 async def exemples_menu(interaction: disnake.MessageInteraction):
@@ -833,22 +750,21 @@ async def exemples_menu(interaction: disnake.MessageInteraction):
     
     select = disnake.ui.StringSelect(placeholder="Faites un choix", options=options)
 
-    async def callback(interaction: disnake.MessageInteraction):
+    async def select_callback(interaction: disnake.MessageInteraction):
         if interaction.values[0] == "🎇 Nos Bannières":
             await bannieres_carrousel(interaction, 0)
         elif interaction.values[0] == "🌸 Nos Logos":
             await logos_carrousel(interaction, 0)
 
-    select.callback = callback
+    select.callback = select_callback
     await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
 
 async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: int):
     embed = disnake.Embed(title="Nos Bannières", color=disnake.Color.red())
     embed.set_image(url=banners[index])
-    buttons = [
-        disnake.ui.Button(label="Précédent", style=disnake.ButtonStyle.secondary, disabled=(index == 0)),
-        disnake.ui.Button(label="Suivant", style=disnake.ButtonStyle.secondary, disabled=(index == len(banners) - 1))
-    ]
+    
+    button_previous = disnake.ui.Button(label="Précédent", style=disnake.ButtonStyle.secondary, disabled=(index == 0))
+    button_next = disnake.ui.Button(label="Suivant", style=disnake.ButtonStyle.secondary, disabled=(index == len(banners) - 1))
 
     async def button_callback(interaction: disnake.MessageInteraction):
         nonlocal index
@@ -858,17 +774,16 @@ async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: in
             index += 1
         await bannieres_carrousel(interaction, index)
 
-    buttons[0].callback = button_callback
-    buttons[1].callback = button_callback
-    await interaction.response.edit_message(embed=embed, components=buttons)
+    button_previous.callback = button_callback
+    button_next.callback = button_callback
+    await interaction.response.edit_message(embed=embed, components=[button_previous, button_next])
 
 async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
     embed = disnake.Embed(title="Nos Logos", color=disnake.Color.blue())
     embed.set_image(url=logos[index])
-    buttons = [
-        disnake.ui.Button(label="Précédent", style=disnake.ButtonStyle.secondary, disabled=(index == 0)),
-        disnake.ui.Button(label="Suivant", style=disnake.ButtonStyle.secondary, disabled=(index == len(logos) - 1))
-    ]
+    
+    button_previous = disnake.ui.Button(label="Précédent", style=disnake.ButtonStyle.secondary, disabled=(index == 0))
+    button_next = disnake.ui.Button(label="Suivant", style=disnake.ButtonStyle.secondary, disabled=(index == len(logos) - 1))
 
     async def button_callback(interaction: disnake.MessageInteraction):
         nonlocal index
@@ -878,9 +793,9 @@ async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
             index += 1
         await logos_carrousel(interaction, index)
 
-    buttons[0].callback = button_callback
-    buttons[1].callback = button_callback
-    await interaction.response.edit_message(embed=embed, components=buttons)
+    button_previous.callback = button_callback
+    button_next.callback = button_callback
+    await interaction.response.edit_message(embed=embed, components=[button_previous, button_next])
 
 async def services_menu(interaction: disnake.MessageInteraction):
     embed = disnake.Embed(title="Nos Services", description="Choisissez un service", color=disnake.Color.red())
@@ -891,21 +806,21 @@ async def services_menu(interaction: disnake.MessageInteraction):
     
     select = disnake.ui.StringSelect(placeholder="Choisissez un service", options=options)
 
-    async def callback(interaction: disnake.MessageInteraction):
+    async def select_callback(interaction: disnake.MessageInteraction):
         if interaction.values[0] == "📸 Graphisme":
             embed_tarif_graphisme = disnake.Embed(title="Tarifs Graphisme", description=TarifGraph, color=disnake.Color.red())
             embed_tarif_graphisme.add_field(name='Ouvre un ticket:', value='https://discord.com/channels/1251476405112537148/1270457969146069124')
-            embed_tarif_graphisme.set_image(url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?ex=66f1806c&is=66f02eec&hm=96c4a8a96706269037c36d25e9578be0249e6cee5e3019562fca3433e2d9ffc1&=&format=webp&quality=lossless&width=960&height=320')
+            embed_tarif_graphisme.set_image(url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?format=webp&quality=lossless&width=960&height=320')
             await interaction.response.send_message(embed=embed_tarif_graphisme, ephemeral=True)
         elif interaction.values[0] == "🪷 Nitro":
             embed_tarif_nitro = disnake.Embed(title="Nos Services Nitro", description=TarifNitro, color=disnake.Color.red())
             embed_tarif_nitro.add_field(name='Ouvre un ticket:', value='https://discord.com/channels/1251476405112537148/1270457969146069124')
-            embed_tarif_nitro.set_image(url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?ex=66f1806c&is=66f02eec&hm=96c4a8a96706269037c36d25e9578be0249e6cee5e3019562fca3433e2d9ffc1&=&format=webp&quality=lossless&width=960&height=320')
+            embed_tarif_nitro.set_image(url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?format=webp&quality=lossless&width=960&height=320')
             await interaction.response.send_message(embed=embed_tarif_nitro, ephemeral=True)
 
-    select.callback = callback
+    select.callback = select_callback
     await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
-
+    
 PunchList = [Gif.Punch1, Gif.Punch2, Gif.Punch3, Gif.Punch4, Gif.Punch5, Gif.Punch6, Gif.Punch7, Gif.Punch8, Gif.Punch9, Gif.Punch10, Gif.Punch11, Gif.Punch12, Gif.Punch13, Gif.Punch14, Gif.Punch15]
 KissList =  [Gif.Kiss1, Gif.Kiss2, Gif.Kiss3, Gif.Kiss4, Gif.Kiss5, Gif.Kiss6, Gif.Kiss7, Gif.Kiss8, Gif.Kiss9, Gif.Kiss10, Gif.Kiss11, Gif.Kiss12, Gif.Kiss13, Gif.Kiss14, Gif.Kiss15]
 HugList = [Gif.Hug1, Gif.Hug2, Gif.Hug3, Gif.Hug4, Gif.Hug5, Gif.Hug6, Gif.Hug7, Gif.Hug8, Gif.Hug9, Gif.Hug10, Gif.Hug11, Gif.Hug12, Gif.Hug13, Gif.Hug14, Gif.Hug15]
