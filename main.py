@@ -728,17 +728,20 @@ async def services(ctx):
         disnake.SelectOption(label="📍 Nos Preuves", description="Voir les preuves de nos services 📸")
     ]
     
-    select = disnake.ui.StringSelect(
+    select = disnake.ui.Select(
         placeholder="Clique ici pour choisir 📕", 
         options=options
     )
 
-    # Envoi du message avec le menu de sélection
-    await ctx.send(embed=embed, components=[select])
+    view = disnake.ui.View()
+    view.add_item(select)
 
     @select.callback
     async def select_callback(interaction: disnake.MessageInteraction):
-        # Gestion des choix sans "values", directement sur les labels
+        # Ensure the interaction is valid
+        if interaction.user != ctx.author:
+            return await interaction.response.send_message("Ce menu n'est pas pour vous.", ephemeral=True)
+
         selected_option = interaction.values[0]
 
         if selected_option == "📕 Nos Exemples":
@@ -763,8 +766,10 @@ async def services(ctx):
                 style=disnake.ButtonStyle.link, 
                 url="https://discord.com/channels/1251476405112537148/1269349648540106852"
             )
-            await interaction.response.send_message(embed=embed_preuve, components=[button_proof], ephemeral=True)
+            view.add_item(button_proof)
+            await interaction.response.send_message(embed=embed_preuve, view=view, ephemeral=True)
 
+    await ctx.send(embed=embed, view=view)
 
 # Fonction pour le menu des exemples
 async def exemples_menu(interaction: disnake.MessageInteraction):
@@ -779,13 +784,13 @@ async def exemples_menu(interaction: disnake.MessageInteraction):
         disnake.SelectOption(label="🌸 Nos Logos", description="Voir nos logos")
     ]
     
-    select = disnake.ui.StringSelect(
+    select = disnake.ui.Select(
         placeholder="Faites un choix", 
         options=options
     )
 
-    # Envoi du message avec le menu de sélection
-    await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
+    view = disnake.ui.View()
+    view.add_item(select)
 
     @select.callback
     async def exemples_callback(interaction: disnake.MessageInteraction):
@@ -796,6 +801,7 @@ async def exemples_menu(interaction: disnake.MessageInteraction):
         elif selected_option == "🌸 Nos Logos":
             await logos_carrousel(interaction, 0)
 
+    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 # Carrousel pour les bannières
 async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: int):
@@ -818,7 +824,11 @@ async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: in
         disabled=(index == len(banners) - 1)
     )
 
-    await interaction.response.edit_message(embed=embed, components=[button_previous, button_next])
+    view = disnake.ui.View()
+    view.add_item(button_previous)
+    view.add_item(button_next)
+
+    await interaction.response.edit_message(embed=embed, view=view)
 
     @button_previous.callback
     async def previous_callback(interaction: disnake.MessageInteraction):
@@ -831,7 +841,6 @@ async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: in
         if index < len(banners) - 1:
             index += 1
             await bannieres_carrousel(interaction, index)
-
 
 async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
     embed = disnake.Embed(
@@ -853,7 +862,11 @@ async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
         disabled=(index == len(logos) - 1)
     )
 
-    await interaction.response.edit_message(embed=embed, components=[button_previous, button_next])
+    view = disnake.ui.View()
+    view.add_item(button_previous)
+    view.add_item(button_next)
+
+    await interaction.response.edit_message(embed=embed, view=view)
 
     @button_previous.callback
     async def previous_callback(interaction: disnake.MessageInteraction):
@@ -866,7 +879,6 @@ async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
         if index < len(logos) - 1:
             index += 1
             await logos_carrousel(interaction, index)
-
 
 # Menu pour les services
 async def services_menu(interaction: disnake.MessageInteraction):
@@ -881,12 +893,13 @@ async def services_menu(interaction: disnake.MessageInteraction):
         disnake.SelectOption(label="🪷 Nitro", description="Voir nos tarifs pour les nitro")
     ]
     
-    select = disnake.ui.StringSelect(
+    select = disnake.ui.Select(
         placeholder="Choisissez un service", 
         options=options
     )
 
-    await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
+    view = disnake.ui.View()
+    view.add_item(select)
 
     @select.callback
     async def services_callback(interaction: disnake.MessageInteraction):
@@ -914,6 +927,9 @@ async def services_menu(interaction: disnake.MessageInteraction):
                 value='https://discord.com/channels/1251476405112537148/1270457969146069124'
             )
             await interaction.response.send_message(embed=embed_tarif_nitro, ephemeral=True)
+
+    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
 
 
 
