@@ -730,29 +730,29 @@ async def services(ctx):
     
     select = disnake.ui.StringSelect(
         placeholder="Clique ici pour choisir 📕", 
-        options=options,
-        custom_id="services_select"  # Utilisation d'un custom_id pour identifier cette sélection
+        options=options
     )
-    
+
+    # Envoi du message avec le menu de sélection
     await ctx.send(embed=embed, components=[select])
 
+    @select.callback
+    async def select_callback(interaction: disnake.MessageInteraction):
+        # Gestion des choix sans "values", directement sur les labels
+        selected_option = interaction.values[0]
 
-@bot.event
-async def on_dropdown(interaction: disnake.MessageInteraction):
-    """Gérer les choix de l'utilisateur dans le menu déroulant"""
-    if interaction.data.custom_id == "services_select":
-        if interaction.values[0] == "📕 Nos Exemples":
+        if selected_option == "📕 Nos Exemples":
             await exemples_menu(interaction)
-        elif interaction.values[0] == "🔎 Information":
+        elif selected_option == "🔎 Information":
             embed_info = disnake.Embed(
                 title="`🔎` Information", 
                 description=Info, 
                 color=disnake.Color.red()
             )
             await interaction.response.send_message(embed=embed_info, ephemeral=True)
-        elif interaction.values[0] == "🪷 Nos Services":
+        elif selected_option == "🪷 Nos Services":
             await services_menu(interaction)
-        elif interaction.values[0] == "📍 Nos Preuves":
+        elif selected_option == "📍 Nos Preuves":
             embed_preuve = disnake.Embed(
                 title="`📍` Nos Preuves", 
                 description="Voici nos preuves. Cliquez sur le bouton ci-dessous pour accéder à notre salon de preuves.", 
@@ -766,6 +766,7 @@ async def on_dropdown(interaction: disnake.MessageInteraction):
             await interaction.response.send_message(embed=embed_preuve, components=[button_proof], ephemeral=True)
 
 
+# Fonction pour le menu des exemples
 async def exemples_menu(interaction: disnake.MessageInteraction):
     embed = disnake.Embed(
         title="Nos Exemples", 
@@ -780,23 +781,23 @@ async def exemples_menu(interaction: disnake.MessageInteraction):
     
     select = disnake.ui.StringSelect(
         placeholder="Faites un choix", 
-        options=options,
-        custom_id="exemples_select"
+        options=options
     )
-    
+
+    # Envoi du message avec le menu de sélection
     await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
 
+    @select.callback
+    async def exemples_callback(interaction: disnake.MessageInteraction):
+        selected_option = interaction.values[0]
 
-@bot.event
-async def on_dropdown(interaction: disnake.MessageInteraction):
-    """Gérer les choix dans le sous-menu des exemples"""
-    if interaction.data.custom_id == "exemples_select":
-        if interaction.values[0] == "🎇 Nos Bannières":
+        if selected_option == "🎇 Nos Bannières":
             await bannieres_carrousel(interaction, 0)
-        elif interaction.values[0] == "🌸 Nos Logos":
+        elif selected_option == "🌸 Nos Logos":
             await logos_carrousel(interaction, 0)
 
 
+# Carrousel pour les bannières
 async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: int):
     embed = disnake.Embed(
         title="Nos Bannières", 
@@ -819,19 +820,17 @@ async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: in
 
     await interaction.response.edit_message(embed=embed, components=[button_previous, button_next])
 
-
-@bot.event
-async def on_button_click(interaction: disnake.MessageInteraction):
-    """Gérer les boutons 'Précédent' et 'Suivant' dans les carrousels"""
-    if interaction.data.custom_id == "previous_banner" or interaction.data.custom_id == "next_banner":
-        index = int(interaction.message.embeds[0].footer.text.split()[1])
-    
-        if interaction.custom_id == "previous_banner":
+    @button_previous.callback
+    async def previous_callback(interaction: disnake.MessageInteraction):
+        if index > 0:
             index -= 1
-        elif interaction.custom_id == "next_banner":
+            await bannieres_carrousel(interaction, index)
+
+    @button_next.callback
+    async def next_callback(interaction: disnake.MessageInteraction):
+        if index < len(banners) - 1:
             index += 1
-    
-        await bannieres_carrousel(interaction, index)
+            await bannieres_carrousel(interaction, index)
 
 
 async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
@@ -856,7 +855,20 @@ async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
 
     await interaction.response.edit_message(embed=embed, components=[button_previous, button_next])
 
+    @button_previous.callback
+    async def previous_callback(interaction: disnake.MessageInteraction):
+        if index > 0:
+            index -= 1
+            await logos_carrousel(interaction, index)
 
+    @button_next.callback
+    async def next_callback(interaction: disnake.MessageInteraction):
+        if index < len(logos) - 1:
+            index += 1
+            await logos_carrousel(interaction, index)
+
+
+# Menu pour les services
 async def services_menu(interaction: disnake.MessageInteraction):
     embed = disnake.Embed(
         title="Nos Services", 
@@ -871,18 +883,16 @@ async def services_menu(interaction: disnake.MessageInteraction):
     
     select = disnake.ui.StringSelect(
         placeholder="Choisissez un service", 
-        options=options,
-        custom_id="services_submenu"
+        options=options
     )
-    
+
     await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
 
+    @select.callback
+    async def services_callback(interaction: disnake.MessageInteraction):
+        selected_option = interaction.values[0]
 
-@bot.event
-async def on_dropdown(interaction: disnake.MessageInteraction):
-    """Gérer les choix dans le sous-menu des services"""
-    if interaction.data.custom_id == "services_submenu":
-        if interaction.values[0] == "📸 Graphisme":
+        if selected_option == "📸 Graphisme":
             embed_tarif_graphisme = disnake.Embed(
                 title="Tarifs Graphisme", 
                 description=TarifGraph, 
@@ -892,11 +902,8 @@ async def on_dropdown(interaction: disnake.MessageInteraction):
                 name='Ouvre un ticket:', 
                 value='https://discord.com/channels/1251476405112537148/1270457969146069124'
             )
-            embed_tarif_graphisme.set_image(
-                url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?format=webp&quality=lossless&width=960&height=320'
-            )
             await interaction.response.send_message(embed=embed_tarif_graphisme, ephemeral=True)
-        elif interaction.values[0] == "🪷 Nitro":
+        elif selected_option == "🪷 Nitro":
             embed_tarif_nitro = disnake.Embed(
                 title="Nos Services Nitro", 
                 description=TarifNitro, 
@@ -905,9 +912,6 @@ async def on_dropdown(interaction: disnake.MessageInteraction):
             embed_tarif_nitro.add_field(
                 name='Ouvre un ticket:', 
                 value='https://discord.com/channels/1251476405112537148/1270457969146069124'
-            )
-            embed_tarif_nitro.set_image(
-                url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?format=webp&quality=lossless&width=960&height=320'
             )
             await interaction.response.send_message(embed=embed_tarif_nitro, ephemeral=True)
 
