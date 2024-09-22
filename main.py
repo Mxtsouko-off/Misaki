@@ -722,7 +722,7 @@ async def services(ctx):
     )
     
     options = [
-        disnake.SelectOption(label="📕 Nos Exemples", description="Voir nos exemples de graphisme de nos travaux déjà réalisés 🕊️"),
+        disnake.SelectOption(label="📕 Nos Exemples", description="Voir des exemples de nos travaux réalisés 🕊️"),
         disnake.SelectOption(label="🔎 Information", description="Obtenir des informations sur nos services 🔎"),
         disnake.SelectOption(label="🪷 Nos Services", description="Voir nos services et tarifs 🪷"),
         disnake.SelectOption(label="📍 Nos Preuves", description="Voir les preuves de nos services 📸")
@@ -731,16 +731,16 @@ async def services(ctx):
     select = disnake.ui.StringSelect(
         placeholder="Clique ici pour choisir 📕", 
         options=options,
-        custom_id="services_select"
+        custom_id="services_select"  # Utilisation d'un custom_id pour identifier cette sélection
     )
     
     await ctx.send(embed=embed, components=[select])
 
 
 @bot.event
-async def on_string_select(interaction: disnake.MessageInteraction):
+async def on_dropdown(interaction: disnake.MessageInteraction):
+    """Gérer les choix de l'utilisateur dans le menu déroulant"""
     if interaction.data.custom_id == "services_select":
-        # Gère les différentes options du menu principal
         if interaction.values[0] == "📕 Nos Exemples":
             await exemples_menu(interaction)
         elif interaction.values[0] == "🔎 Information":
@@ -788,8 +788,8 @@ async def exemples_menu(interaction: disnake.MessageInteraction):
 
 
 @bot.event
-async def on_string_select(interaction: disnake.MessageInteraction):
-    # Gère les exemples de bannières ou logos
+async def on_dropdown(interaction: disnake.MessageInteraction):
+    """Gérer les choix dans le sous-menu des exemples"""
     if interaction.data.custom_id == "exemples_select":
         if interaction.values[0] == "🎇 Nos Bannières":
             await bannieres_carrousel(interaction, 0)
@@ -807,13 +807,13 @@ async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: in
     button_previous = disnake.ui.Button(
         label="Précédent", 
         style=disnake.ButtonStyle.secondary, 
-        custom_id="previous",
+        custom_id="previous_banner", 
         disabled=(index == 0)
     )
     button_next = disnake.ui.Button(
         label="Suivant", 
         style=disnake.ButtonStyle.secondary, 
-        custom_id="next",
+        custom_id="next_banner", 
         disabled=(index == len(banners) - 1)
     )
 
@@ -822,15 +822,16 @@ async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: in
 
 @bot.event
 async def on_button_click(interaction: disnake.MessageInteraction):
-    # Gère les boutons "Précédent" et "Suivant" pour le carrousel des bannières
-    index = int(interaction.message.embeds[0].footer.text.split()[1])
+    """Gérer les boutons 'Précédent' et 'Suivant' dans les carrousels"""
+    if interaction.data.custom_id == "previous_banner" or interaction.data.custom_id == "next_banner":
+        index = int(interaction.message.embeds[0].footer.text.split()[1])
     
-    if interaction.custom_id == "previous":
-        index -= 1
-    elif interaction.custom_id == "next":
-        index += 1
+        if interaction.custom_id == "previous_banner":
+            index -= 1
+        elif interaction.custom_id == "next_banner":
+            index += 1
     
-    await bannieres_carrousel(interaction, index)
+        await bannieres_carrousel(interaction, index)
 
 
 async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
@@ -843,13 +844,13 @@ async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
     button_previous = disnake.ui.Button(
         label="Précédent", 
         style=disnake.ButtonStyle.secondary, 
-        custom_id="previous",
+        custom_id="previous_logo", 
         disabled=(index == 0)
     )
     button_next = disnake.ui.Button(
         label="Suivant", 
         style=disnake.ButtonStyle.secondary, 
-        custom_id="next",
+        custom_id="next_logo", 
         disabled=(index == len(logos) - 1)
     )
 
@@ -878,9 +879,9 @@ async def services_menu(interaction: disnake.MessageInteraction):
 
 
 @bot.event
-async def on_string_select(interaction: disnake.MessageInteraction):
+async def on_dropdown(interaction: disnake.MessageInteraction):
+    """Gérer les choix dans le sous-menu des services"""
     if interaction.data.custom_id == "services_submenu":
-        # Gère la sélection des tarifs
         if interaction.values[0] == "📸 Graphisme":
             embed_tarif_graphisme = disnake.Embed(
                 title="Tarifs Graphisme", 
