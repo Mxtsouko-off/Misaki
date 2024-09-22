@@ -442,7 +442,7 @@ async def rep(ctx):
 
     reputation_data[user_id] += 1  
 
-    embed = disnake.Embed(title="Réputation mise à jour", color=disnake.Color.green())
+    embed = disnake.Embed(title="Réputation mise à jour", color=disnake.Color.red())
     embed.set_thumbnail(url=user.avatar.url)  
     embed.add_field(
         name="Réputation augmentée",
@@ -470,7 +470,7 @@ async def statrep(ctx):
     user = await bot.fetch_user(user_id)   
     reputation = reputation_data.get(user_id, 0)  
 
-    embed = disnake.Embed(title=f"Statistiques de {user.name}", color=disnake.Color.green())
+    embed = disnake.Embed(title=f"Statistiques de {user.name}", color=disnake.Color.red())
     embed.set_thumbnail(url=user.avatar.url) 
     embed.add_field(name="Discord:", value=f"{user.name}{user.discriminator}", inline=False)
     embed.add_field(name="Réputation:", value=reputation, inline=False)
@@ -704,42 +704,211 @@ async def banner(ctx, channel: disnake.TextChannel, link: str):
         await channel.send(content=role.mention, embed=embed)
 
 
-@bot.command(name='logo', description='Ajouter un nouveau logo')
-async def logo(ctx, channel: disnake.TextChannel, link: str):
-    utilisateur_autorise = 723256412674719795
+import disnake
+from disnake.ext import commands
 
-    if ctx.author.id != utilisateur_autorise:
-        await ctx.send("Seule Mxtsouko peut utiliser cette commande.")
-        return
+banners = [
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467675362267267/JdnYHMP.png?ex=66f1a735&is=66f055b5&hm=57920b8135ee12c11386c360b99e94afc6eafc089add5dc3058fa8ab9572812b&=&format=webp&quality=lossless&width=960&height=320",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467676360380446/dNL13qo.png?ex=66f1a736&is=66f055b6&hm=5e7f20874ae8db6836afb862a40767455da466db95d370a1dd29a5a96ca679ad&=&format=webp&quality=lossless&width=960&height=320",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467676784136213/EWjjW4O.png?ex=66f1a736&is=66f055b6&hm=25d56c54155e04d989056da10ffa95281cb12d925df416b9c3d53b4dd1c0c9a6&=&format=webp&quality=lossless&width=960&height=320",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467677312352396/BRgncbr.png?ex=66f1a736&is=66f055b6&hm=f675c290d6cf6b32182f29efc93e1b4a4420ac7b92678201eb8ce7e854edda33&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467677819994132/pURXY13.png?ex=66f1a736&is=66f055b6&hm=b9ac3e700ed79ce203cbcc9b75dcf4b02f2d06e8a6eeb8510cab54ddbcca3b4c&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467678243623012/FUFqQfP.png?ex=66f1a736&is=66f055b6&hm=be3f528da10697872e10d297d7e7b44bc54e69d732f667a53024384490a0b439&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467717216960573/8WcvlSM.png?ex=66f1a73f&is=66f055bf&hm=bf274601495f24cca77a60d1f7422c6e70e0e5bcf900023f14dc18614e7d9b54&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467719683215360/qfevvsx.png?ex=66f1a740&is=66f055c0&hm=5f319ad55254da4375e196f28597eacbd494086c03eb56df8242fb21cf955215&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467720262025246/Tcvd7mp.png?ex=66f1a740&is=66f055c0&hm=4b00625ae94eb897591f3445869a4784bacfe8f83ea0c49de1974aa35f3d2acc&=&format=webp&quality=lossless&width=1440&height=415",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467720803356764/wy1dwCj.jpg?ex=66f1a740&is=66f055c0&hm=2af957d1d3ef1b0a12e9fc760be8b4a6d70c62601b20c21329d7603191cf32ff&=&format=webp&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467721205743647/YSXtX99.png?ex=66f1a740&is=66f055c0&hm=f1a8bab3a08e3807b0d3bb2fe46f154958da3246e94cfd06a7236a5639efea2c&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467721663189063/2Qv7NpL.png?ex=66f1a740&is=66f055c0&hm=383eeacc405ad72eccbdfed23aa8c6628db6b597d0bfca5249a7b313df1aaaed&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467722191667261/JtGDXts.png?ex=66f1a740&is=66f055c0&hm=ca04d562b530eb881442ca46f744dd83a2911a2cb39fc559025c40cb093e8232&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287467722740863077/DJDdYry.png?ex=66f1a741&is=66f055c1&hm=3579a450552026de1da347ac063a61d803f8c952011fa1ac72c80e11ee1d3fc1&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287470796083695717/VOYGrMx.png?ex=66f1aa1d&is=66f0589d&hm=cb6f29b383779422cc764ada7cbf5c017c80382a9dc757624eb2d7d3f2931310&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287470796603916338/Fm1XIGk.png?ex=66f1aa1d&is=66f0589d&hm=c9adfea7cff13af2cfca5ba6ffd0d612afd478dbcf28a296f9a331c2b7ba1864&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287470797019021476/5rEHGf6.png?ex=66f1aa1e&is=66f0589e&hm=389a455cb50f857f3e63492d0d8fc28045f346c0af81e5bd61597ab4687f511f&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287470797413421198/jOsmUKF.png?ex=66f1aa1e&is=66f0589e&hm=b23e58c00b97c1986865eebe9dc9c4f5e0219ef655061034ff93be960eeaef0f&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287470797836783717/P5oXwbc.png?ex=66f1aa1e&is=66f0589e&hm=f6008b57b1f6ed0e66721f0959b5dc9c51b797549092d33bf0a2218a27b5e755&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287470798315196448/x3jvSPu.png?ex=66f1aa1e&is=66f0589e&hm=c4c226f42f982c53749d03edd7b14deedbac700d1f7618296412b369d0df2eed&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287470799011446815/9Vprxs1.png?ex=66f1aa1e&is=66f0589e&hm=6c8819353c7e29c65338c46a58db866f2e5edb033c21afdcb0e627ca2bf9d667&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287470799443333202/4vZmqgf.png?ex=66f1aa1e&is=66f0589e&hm=707b7620c98e20af39086246b374febb0cba912df63d69de1bcfe4794b589d72&=&format=webp&quality=lossless&width=1440&height=480",
+    "https://media.discordapp.net/attachments/1287467634534776923/1287470799850049658/1vAKYFF.png?ex=66f1aa1e&is=66f0589e&hm=7cfdc607bdd0891f7b16f7fd3421911efec8552086fb6ccddad86ef25f4ce069&=&format=webp&quality=lossless&width=1440&height=480"
+]
 
-    if channel:
-        role = disnake.utils.get(channel.guild.roles, name='📣〢Notification Boutique')
-        embed = disnake.Embed(
-            title='Nouveau logo ajouté', 
-            description='Nos logos sont entièrement faits à la main. Aucun site ou autre, ils sont tous réalisés par notre graphiste.'
-        )
-        embed.set_image(url=link)
-        embed.set_footer(text=f'Ce logo a été posté par {ctx.author.name}')
-        await channel.send(content=role.mention, embed=embed)
+logos = [
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474008249598124/1lsA8z4.png?ex=66f1ad1b&is=66f05b9b&hm=f2f0bf96c629eedd6ee0e469637d4dd85077d0605cb45d165cdb02fc7279f1fd&=&format=webp&quality=lossless",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474008509382808/zVbtEFN.png?ex=66f1ad1b&is=66f05b9b&hm=0467009e6265a1d26323f69036537da294cbbae9f9880880ecc6230c17e4fd6e&=&format=webp&quality=lossless",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474008798920815/yQzTZYD.png?ex=66f1ad1b&is=66f05b9b&hm=70cb518cbdc7305889017fac3f2fa00932cc19d6c76ea71ebfd9469f84bfb2b1&=&format=webp&quality=lossless",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474009042321509/Dy85dEu.png?ex=66f1ad1b&is=66f05b9b&hm=ec216c9ef9cc9fef09fc2a62632e7a072c339aa5c20c399e5126ebc778e62377&=&format=webp&quality=lossless",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474009272745994/p1xf4mB.jpg?ex=66f1ad1b&is=66f05b9b&hm=5fbd8021e2c4133c70e2e1751562b4e7ffae4294748ca0731ba88cd0586283fe&=&format=webp",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474009570672727/ULFUjAS.png?ex=66f1ad1b&is=66f05b9b&hm=ce278cbaca90f1dc32fe9bb1f103e21fc45a6cdc1de857fce32cc0a2c9ee9148&=&format=webp&quality=lossless",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474009851822101/eivPDfs.png?ex=66f1ad1c&is=66f05b9c&hm=b40e6b90114b3722c27d8e56edd70bdc6f6c37fe6269e4f0d69460579a97771e&=&format=webp&quality=lossless",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474010128384010/xxAddbA.png?ex=66f1ad1c&is=66f05b9c&hm=f479b425d465923e1fe6d54a12017abe26e92ab4a4439b9a873ee4b6585983ae&=&format=webp&quality=lossless",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474010367590410/xkVIJ38.png?ex=66f1ad1c&is=66f05b9c&hm=c775b960872bbc1da6a592af071e64766f296f9c5cb7ab72bfa234b8538216a5&=&format=webp&quality=lossless",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474053841686660/tEAbQ20.png?ex=66f1ad26&is=66f05ba6&hm=b4e5b83c3036e4b1358f02d019aa223968bfbe450543d037a8cf752adf90febe&=&format=webp&quality=lossless",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474054202265630/Q6f4Gs3.png?ex=66f1ad26&is=66f05ba6&hm=71c20a72e2104cdb133e8318c6bffd69ecd47eb8fde80bfbc58f1f429ce18527&=&format=webp&quality=lossless",
+    "https://media.discordapp.net/attachments/1287472129864110092/1287474054617370716/FWcfmX0.png?ex=66f1ad26&is=66f05ba6&hm=caffbdeb86ec7012aa58dd36d2148606a141185b461aa8db7f8ec9c6a6a2ddaa&=&format=webp&quality=lossless",
+]
+
+TarifNitro = """
+***Nos Services**: Nitro `📍`*
+
+_ `🪷` Nitro Boost:
+
+_       `🪷` 1 Mois: 6,50€ (Prix discord: ~~10,00€~~)
+
+_ `🪷` 2 Mois: 14,99€ (Prix discord: ~~20,00€~~)
+
+_       `🪷` 3 Mois: 24,50€ (Prix discord: ~~30,00€~~)
+
+_ `🪷` 1 Ans: 64,99€ (Prix discord: ~~100,00€~~)
+
+_       `🪷` Nitro Boost Promotions:
+
+_ `🪷` 1 Mois: 2€
+"""
+
+TarifGraph = """
+***Nos Services**: Graphisme `📍`*
+
+_ `📸`:
+
+_       `📸` Banniere: 8,50€ 
+
+_ `🎇` Logo: 3,99€
+
+_       `📸` Miniature: 7,99€
+
+_ `🎇` Overlay Live Complet: 14,99€ (Nouveauté)
+
+_       `📸` Affiche Annonces: 6,50€ (Nouveauté)
+
+"""
+
+Info = """
+_ Pour les remboursements :
+_  **Les commandes déjà commencées ne peuvent pas être remboursées.**
+_ Une fois qu'une commande est terminée, elle **ne peut plus être modifiée.**Nous nous engageons à être fiables, 
+_     mais nous vous demandons de bien vouloir lire attentivement ces informations, 
+_ car nous ne répéterons pas ces détails dans les tickets de support.n**Modes de paiement acceptés :****PayPal** (en tant qu’ami proche)**Paysafecard** (pour les commandes dépassant 20 €) Note : Les paiements effectués via Paysafecard seront convertis en argent PayPal, 
+_ ce qui peut entraîner une perte de valeur sur votre commande. Merci pour votre compréhension et coopération !
+"""
+
+intents = disnake.Intents.all()
+bot = commands.Bot(command_prefix=".", intents=intents)
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def services(ctx):
+    embed = disnake.Embed(title="`🔎` Nos Services", description="Choisissez une option ci-dessous `📍`", color=disnake.Color.red())
+    options = [
+        disnake.SelectOption(label="📕 Nos Exemples", description="Voir nos exemples de graphisme de nos travaux deja réalisé 🕊️"),
+        disnake.SelectOption(label="🔎 Information", description="Obtenir des informations sur nos services 🔎"),
+        disnake.SelectOption(label="🪷 Nos Services", description="Voir nos services et tarifs 🪷"),
+        disnake.SelectOption(label="📍 Nos Preuves", description="Voir les preuves de nos services 📸")
+    ]
+    
+    select = disnake.ui.StringSelect(placeholder="Clique ici pour choisir 📕", options=options)
+
+    async def callback(interaction: disnake.MessageInteraction):
+        if interaction.values[0] == "📕 Nos Exemples":
+            await exemples_menu(interaction)
+        elif interaction.values[0] == "🔎 Information":
+            embed_info = disnake.Embed(title="`🔎` Information", description=Info, color=disnake.Color.red())
+            await interaction.response.send_message(embed=embed_info, ephemeral=True)
+        elif interaction.values[0] == "🪷 Nos Services":
+            await services_menu(interaction)
+        elif interaction.values[0] == "📍 Nos Preuves":
+            embed_preuve = disnake.Embed(title="`📍`Nos Preuves", description="Voici nos preuves. Cliquez sur le bouton ci-dessous pour accéder à notre salon de preuves.", color=disnake.Color.purple())
+            button_proof = disnake.ui.Button(label="Voir le salon de preuves", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1269349648540106852")
+            await interaction.response.send_message(embed=embed_preuve, components=[button_proof], ephemeral=True)
+
+    select.callback = callback
+    await ctx.send(embed=embed, components=[select])
+
+async def exemples_menu(interaction: disnake.MessageInteraction):
+    embed = disnake.Embed(title="Nos Exemples", description="Choisissez une catégorie", color=disnake.Color.red())
+    options = [
+        disnake.SelectOption(label="🎇 Nos Bannières", description="Voir nos bannières"),
+        disnake.SelectOption(label="🌸 Nos Logos", description="Voir nos logos")
+    ]
+    
+    select = disnake.ui.StringSelect(placeholder="Faites un choix", options=options)
+
+    async def callback(interaction: disnake.MessageInteraction):
+        if interaction.values[0] == "🎇 Nos Bannières":
+            await bannieres_carrousel(interaction, 0)
+        elif interaction.values[0] == "🌸 Nos Logos":
+            await logos_carrousel(interaction, 0)
+
+    select.callback = callback
+    await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
+
+async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: int):
+    embed = disnake.Embed(title="Nos Bannières", color=disnake.Color.red())
+    embed.set_image(url=banners[index])
+    buttons = [
+        disnake.ui.Button(label="Précédent", style=disnake.ButtonStyle.secondary, disabled=(index == 0)),
+        disnake.ui.Button(label="Suivant", style=disnake.ButtonStyle.secondary, disabled=(index == len(banners) - 1))
+    ]
+
+    async def button_callback(interaction: disnake.MessageInteraction):
+        nonlocal index
+        if interaction.custom_id == "previous":
+            index -= 1
+        elif interaction.custom_id == "next":
+            index += 1
+        await bannieres_carrousel(interaction, index)
+
+    buttons[0].callback = button_callback
+    buttons[1].callback = button_callback
+    await interaction.response.edit_message(embed=embed, components=buttons)
+
+async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
+    embed = disnake.Embed(title="Nos Logos", color=disnake.Color.blue())
+    embed.set_image(url=logos[index])
+    buttons = [
+        disnake.ui.Button(label="Précédent", style=disnake.ButtonStyle.secondary, disabled=(index == 0)),
+        disnake.ui.Button(label="Suivant", style=disnake.ButtonStyle.secondary, disabled=(index == len(logos) - 1))
+    ]
+
+    async def button_callback(interaction: disnake.MessageInteraction):
+        nonlocal index
+        if interaction.custom_id == "previous":
+            index -= 1
+        elif interaction.custom_id == "next":
+            index += 1
+        await logos_carrousel(interaction, index)
+
+    buttons[0].callback = button_callback
+    buttons[1].callback = button_callback
+    await interaction.response.edit_message(embed=embed, components=buttons)
+
+async def services_menu(interaction: disnake.MessageInteraction):
+    embed = disnake.Embed(title="Nos Services", description="Choisissez un service", color=disnake.Color.red())
+    options = [
+        disnake.SelectOption(label="📸 Graphisme", description="Voir nos tarifs pour le graphisme"),
+        disnake.SelectOption(label="🪷 Nitro", description="Voir nos tarifs pour les nitro")
+    ]
+    
+    select = disnake.ui.StringSelect(placeholder="Choisissez un service", options=options)
+
+    async def callback(interaction: disnake.MessageInteraction):
+        if interaction.values[0] == "📸 Graphisme":
+            embed_tarif_graphisme = disnake.Embed(title="Tarifs Graphisme", description=TarifGraph, color=disnake.Color.red())
+            embed_tarif_graphisme.add_field(name='Ouvre un ticket:', value='https://discord.com/channels/1251476405112537148/1270457969146069124')
+            embed_tarif_graphisme.set_image(url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?ex=66f1806c&is=66f02eec&hm=96c4a8a96706269037c36d25e9578be0249e6cee5e3019562fca3433e2d9ffc1&=&format=webp&quality=lossless&width=960&height=320')
+            await interaction.response.send_message(embed=embed_tarif_graphisme, ephemeral=True)
+        elif interaction.values[0] == "🪷 Nitro":
+            embed_tarif_nitro = disnake.Embed(title="Nos Services Nitro", description=TarifNitro, color=disnake.Color.red())
+            embed_tarif_nitro.add_field(name='Ouvre un ticket:', value='https://discord.com/channels/1251476405112537148/1270457969146069124')
+            embed_tarif_nitro.set_image(url='https://media.discordapp.net/attachments/1268922208697454592/1286701251379335259/eWXNXN7.png?ex=66f1806c&is=66f02eec&hm=96c4a8a96706269037c36d25e9578be0249e6cee5e3019562fca3433e2d9ffc1&=&format=webp&quality=lossless&width=960&height=320')
+            await interaction.response.send_message(embed=embed_tarif_nitro, ephemeral=True)
+
+    select.callback = callback
+    await interaction.response.send_message(embed=embed, components=[select], ephemeral=True)
+
+bot.run("your_token_here")
 
 
-@bot.command(name='minia', description='Ajouter une nouvelle miniature')
-async def minia(ctx, channel: disnake.TextChannel, link: str):
-    utilisateur_autorise = 723256412674719795
-
-    if ctx.author.id != utilisateur_autorise:
-        await ctx.send("Seule Mxtsouko peut utiliser cette commande.")
-        return
-
-    if channel:
-        role = disnake.utils.get(channel.guild.roles, name='📣〢Notification Boutique')
-        embed = disnake.Embed(
-            title='Nouvelle miniature ajoutée', 
-            description='Nos miniatures sont entièrement faites à la main. Aucun site ou autre, elles sont toutes réalisées par notre graphiste.'
-        )
-        embed.set_image(url=link)
-        embed.set_footer(text=f'Cette miniature a été postée par {ctx.author.name}')
-        await channel.send(content=role.mention, embed=embed)
 
 PunchList = [Gif.Punch1, Gif.Punch2, Gif.Punch3, Gif.Punch4, Gif.Punch5, Gif.Punch6, Gif.Punch7, Gif.Punch8, Gif.Punch9, Gif.Punch10, Gif.Punch11, Gif.Punch12, Gif.Punch13, Gif.Punch14, Gif.Punch15]
 KissList =  [Gif.Kiss1, Gif.Kiss2, Gif.Kiss3, Gif.Kiss4, Gif.Kiss5, Gif.Kiss6, Gif.Kiss7, Gif.Kiss8, Gif.Kiss9, Gif.Kiss10, Gif.Kiss11, Gif.Kiss12, Gif.Kiss13, Gif.Kiss14, Gif.Kiss15]
