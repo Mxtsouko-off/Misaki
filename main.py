@@ -627,6 +627,58 @@ async def promouvoir(ctx, membre: disnake.Member, role: str):
 
 
 
+
+TarifNitro = """
+***Nos Services**: Nitro `📍`*
+
+_ `🪷` Nitro Boost:
+
+_       `🪷` 1 Mois: 6,50€ (Prix discord: ~~10,00€~~)
+
+_ `🪷` 2 Mois: 14,99€ (Prix discord: ~~20,00€~~)
+
+_       `🪷` 3 Mois: 24,50€ (Prix discord: ~~30,00€~~)
+
+_ `🪷` 1 Ans: 64,99€ (Prix discord: ~~100,00€~~)
+
+_       `🪷` Nitro Boost Promotions:
+
+_ `🪷` 1 Mois: 2€
+"""
+
+TarifGraph = """
+***Nos Services**: Graphisme `📍`*
+
+_ `📸` Graphisme:
+
+_       `📸` Banniere: 8,50€ 
+
+_ `🎇` Logo: 3,99€
+
+_       `📸` Miniature: 7,99€
+
+_ `🎇` Overlay Live Complet: 14,99€ (Nouveauté)
+
+_       `📸` Affiche Annonces: 6,50€ (Nouveauté)
+
+"""
+
+Info = """
+**💼 Remboursements :**
+
+- Les commandes déjà commencées **ne peuvent pas être remboursées**.
+- Une fois une commande terminée, elle **ne peut plus être modifiée**.
+
+Nous nous engageons à être fiables, mais nous vous demandons de **bien lire ces informations** attentivement, car elles ne seront pas répétées dans les tickets de support.
+
+**💳 Modes de paiement acceptés :**
+
+- **PayPal** (en tant qu'ami proche)
+- **Paysafecard** (pour les commandes de plus de 20 €)
+
+*Note : Les paiements via Paysafecard seront convertis en argent PayPal, ce qui peut entraîner une légère perte de valeur sur votre commande. Merci de votre compréhension et coopération !*
+"""
+
 banners = [
     "https://media.discordapp.net/attachments/1287467634534776923/1287467675362267267/JdnYHMP.png?ex=66f1a735&is=66f055b5&hm=57920b8135ee12c11386c360b99e94afc6eafc089add5dc3058fa8ab9572812b&=&format=webp&quality=lossless&width=960&height=320",
     "https://media.discordapp.net/attachments/1287467634534776923/1287467676360380446/dNL13qo.png?ex=66f1a736&is=66f055b6&hm=5e7f20874ae8db6836afb862a40767455da466db95d370a1dd29a5a96ca679ad&=&format=webp&quality=lossless&width=960&height=320",
@@ -668,273 +720,202 @@ logos = [
     "https://media.discordapp.net/attachments/1287472129864110092/1287474054617370716/FWcfmX0.png?ex=66f1ad26&is=66f05ba6&hm=caffbdeb86ec7012aa58dd36d2148606a141185b461aa8db7f8ec9c6a6a2ddaa&=&format=webp&quality=lossless",
 ]
 
-TarifNitro = """
-***Nos Services**: Nitro `📍`*
+class CarouselView(disnake.ui.View):
+    def __init__(self, items, index: int, callback_function):
+        super().__init__()
+        self.items = items
+        self.index = index
+        self.callback_function = callback_function
 
-_ `🪷` Nitro Boost:
+        self.update_buttons()
 
-_       `🪷` 1 Mois: 6,50€ (Prix discord: ~~10,00€~~)
+    def update_buttons(self):
+        if self.index > 0:
+            button_previous = disnake.ui.Button(
+                label="Précédent",
+                style=disnake.ButtonStyle.secondary,
+                custom_id="previous_button"
+            )
+            button_previous.callback = self.previous_callback
+            self.add_item(button_previous)
 
-_ `🪷` 2 Mois: 14,99€ (Prix discord: ~~20,00€~~)
+        if self.index < len(self.items) - 1:
+            button_next = disnake.ui.Button(
+                label="Suivant",
+                style=disnake.ButtonStyle.secondary,
+                custom_id="next_button"
+            )
+            button_next.callback = self.next_callback
+            self.add_item(button_next)
 
-_       `🪷` 3 Mois: 24,50€ (Prix discord: ~~30,00€~~)
+    async def previous_callback(self, interaction: disnake.MessageInteraction):
+        if self.index > 0:
+            self.index -= 1
+            await self.callback_function(interaction, self.index)
 
-_ `🪷` 1 Ans: 64,99€ (Prix discord: ~~100,00€~~)
-
-_       `🪷` Nitro Boost Promotions:
-
-_ `🪷` 1 Mois: 2€
-"""
-
-TarifGraph = """
-***Nos Services**: Graphisme `📍`*
-
-_ `📸`:
-
-_       `📸` Banniere: 8,50€ 
-
-_ `🎇` Logo: 3,99€
-
-_       `📸` Miniature: 7,99€
-
-_ `🎇` Overlay Live Complet: 14,99€ (Nouveauté)
-
-_       `📸` Affiche Annonces: 6,50€ (Nouveauté)
-
-"""
-
-Info = """
-_ Pour les remboursements :
-_  **Les commandes déjà commencées ne peuvent pas être remboursées.**
-_ Une fois qu'une commande est terminée, elle **ne peut plus être modifiée.**Nous nous engageons à être fiables, 
-_     mais nous vous demandons de bien vouloir lire attentivement ces informations, 
-_ car nous ne répéterons pas ces détails dans les tickets de support.n**Modes de paiement acceptés :****PayPal** (en tant qu’ami proche)**Paysafecard** (pour les commandes dépassant 20 €) Note : Les paiements effectués via Paysafecard seront convertis en argent PayPal, 
-_ ce qui peut entraîner une perte de valeur sur votre commande. Merci pour votre compréhension et coopération !
-"""
-
-@bot.command()
-@commands.has_permissions(administrator=True)
-async def services(ctx):
-    embed = disnake.Embed(
-        title="`🔎` Nos Services", 
-        description="Choisissez une option ci-dessous `📍`", 
-        color=disnake.Color.red()
-    )
+    async def next_callback(self, interaction: disnake.MessageInteraction):
+        if self.index < len(self.items) - 1:
+            self.index += 1
+            await self.callback_function(interaction, self.index)
     
-    options = [
-        disnake.SelectOption(label="📕 Nos Exemples", description="Voir des exemples de nos travaux réalisés 🕊️"),
-        disnake.SelectOption(label="🔎 Information", description="Obtenir des informations sur nos services 🔎"),
-        disnake.SelectOption(label="🪷 Nos Services", description="Voir nos services et tarifs 🪷"),
-        disnake.SelectOption(label="📍 Nos Preuves", description="Voir les preuves de nos services 📸")
-    ]
-    
-    select = disnake.ui.Select(
-        placeholder="Clique ici pour choisir 📕", 
-        options=options
-    )
+class Services(disnake.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.select = disnake.ui.Select(
+            placeholder='Choisis une option 📕',
+            options=[
+                disnake.SelectOption(label='📕 Nos Exemples', value='1', description='Voir des exemples de nos travaux réalisés 🕊️'),
+                disnake.SelectOption(label='🔎 Information', value='2', description='Voir les Informations de notre boutique 🔎'),
+                disnake.SelectOption(label='📍 Nos Preuves', value='3', description='Voir les preuves de nos précédents giveaways ou commandes 📍'),
+                disnake.SelectOption(label='🪷 Nos Services', value='4', description='Voir les prix de nos services 🪷')
+            ]
+        )
+        self.add_item(self.select)
+        self.select.callback = self.select_callback  
 
-    view = disnake.ui.View()
-    view.add_item(select)
+    async def select_callback(self, interaction: disnake.MessageInteraction):
+        selected_value = self.select.values[0]
 
-    @select.callback
-    async def select_callback(interaction: disnake.MessageInteraction):
-        if interaction.user != ctx.author:
-            return await interaction.response.send_message("Ce menu n'est pas pour vous.", ephemeral=True)
-
-        selected_option = interaction.values[0]
-
-        if selected_option == "📕 Nos Exemples":
-            await exemples_menu(interaction)
-        elif selected_option == "🔎 Information":
+        if selected_value == '1':
+            await self.show_exemple(interaction)
+        
+        elif selected_value == '2':
             embed_info = disnake.Embed(
-                title="`🔎` Information", 
-                description=Info, 
+                title="`🔎` Information",
+                description=Info,
                 color=disnake.Color.red()
             )
             await interaction.response.send_message(embed=embed_info, ephemeral=True)
-        elif selected_option == "🪷 Nos Services":
-            await services_menu(interaction)
-        elif selected_option == "📍 Nos Preuves":
+
+        elif selected_value == '3':
             embed_preuve = disnake.Embed(
-                title="`📍` Nos Preuves", 
-                description="Voici nos preuves. Cliquez sur le bouton ci-dessous pour accéder à notre salon de preuves.", 
+                title="`📍` Nos Preuves",
+                description="Voici nos preuves. Cliquez sur le bouton ci-dessous pour accéder à notre salon de preuves.",
                 color=disnake.Color.purple()
             )
             button_proof = disnake.ui.Button(
-                label="Voir le salon de preuves", 
-                style=disnake.ButtonStyle.link, 
+                label="Voir le salon de preuves",
+                style=disnake.ButtonStyle.link,
                 url="https://discord.com/channels/1251476405112537148/1269349648540106852"
             )
             view = disnake.ui.View()
             view.add_item(button_proof)
             await interaction.response.send_message(embed=embed_preuve, view=view, ephemeral=True)
 
-    await ctx.send(embed=embed, view=view)
+        elif selected_value == '4':
+            await self.show_services(interaction)
 
-# Fonction pour le menu des exemples
-async def exemples_menu(interaction: disnake.MessageInteraction):
-    embed = disnake.Embed(
-        title="Nos Exemples", 
-        description="Choisissez une catégorie", 
-        color=disnake.Color.red()
-    )
-    
-    options = [
-        disnake.SelectOption(label="🎇 Nos Bannières", description="Voir nos bannières"),
-        disnake.SelectOption(label="🌸 Nos Logos", description="Voir nos logos")
-    ]
-    
-    select = disnake.ui.Select(
-        placeholder="Faites un choix", 
-        options=options
-    )
+    async def show_services(self, interaction: disnake.MessageInteraction):
+        embed = disnake.Embed(
+            title="Nos Services",
+            description="Choisissez un service",
+            color=disnake.Color.red()
+        )
 
-    view = disnake.ui.View()
-    view.add_item(select)
+        options = [
+            disnake.SelectOption(label="📸 Graphisme", description="Voir nos tarifs pour le graphisme", value='5'),
+            disnake.SelectOption(label="🪷 Nitro", description="Voir nos tarifs pour les nitro", value='6')
+        ]
 
-    @select.callback
-    async def exemples_callback(interaction: disnake.MessageInteraction):
-        selected_option = interaction.values[0]
+        select = disnake.ui.Select(
+            placeholder="Choisissez un service",
+            options=options
+        )
 
-        if selected_option == "🎇 Nos Bannières":
-            await bannieres_carrousel(interaction, 0)
-        elif selected_option == "🌸 Nos Logos":
-            await logos_carrousel(interaction, 0)
+        view = disnake.ui.View()
+        view.add_item(select)
 
-    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        async def service_callback(interaction: disnake.MessageInteraction):
+            selected_value = select.values[0]
 
-# Carrousel pour les bannières
+            if selected_value == '5':
+                embed_tarif_graphisme = disnake.Embed(
+                    title="Tarifs Graphisme",
+                    description=TarifGraph,
+                    color=disnake.Color.red()
+                )
+                await interaction.response.send_message(embed=embed_tarif_graphisme, ephemeral=True)
+
+            elif selected_value == '6':
+                embed_tarif_nitro = disnake.Embed(
+                    title="Nos Services Nitro",
+                    description=TarifNitro,
+                    color=disnake.Color.red()
+                )
+                await interaction.response.send_message(embed=embed_tarif_nitro, ephemeral=True)
+
+        select.callback = service_callback
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+    async def show_exemple(self, interaction: disnake.MessageInteraction):
+        embed = disnake.Embed(
+            title="Nos Exemples",
+            description="Choisissez une catégorie",
+            color=disnake.Color.red()
+        )
+
+        options = [
+            disnake.SelectOption(label="🎇 Nos Bannières", description="Voir nos bannières", value='7'),
+            disnake.SelectOption(label="🌸 Nos Logos", description="Voir nos logos", value='8')
+        ]
+
+        select = disnake.ui.Select(
+            placeholder="Faites un choix",
+            options=options
+        )
+
+        view = disnake.ui.View()
+        view.add_item(select)
+
+        async def exemple_callback(interaction: disnake.MessageInteraction):
+            selected_value = select.values[0]
+
+            if selected_value == '7':
+                await bannieres_carrousel(interaction, 0)
+
+            elif selected_value == '8':
+                await logos_carrousel(interaction, 0)
+
+        select.callback = exemple_callback
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+
 async def bannieres_carrousel(interaction: disnake.MessageInteraction, index: int):
     embed = disnake.Embed(
-        title="Nos Bannières", 
+        title="Nos Bannières",
         color=disnake.Color.red()
     )
     embed.set_image(url=banners[index])
-    
-    button_previous = disnake.ui.Button(
-        label="Précédent", 
-        style=disnake.ButtonStyle.secondary, 
-        custom_id="previous_banner", 
-        disabled=(index == 0)
-    )
-    button_next = disnake.ui.Button(
-        label="Suivant", 
-        style=disnake.ButtonStyle.secondary, 
-        custom_id="next_banner", 
-        disabled=(index == len(banners) - 1)
-    )
 
-    view = disnake.ui.View()
-    view.add_item(button_previous)
-    view.add_item(button_next)
+    view = CarouselView(banners, index, bannieres_carrousel)
 
     await interaction.response.edit_message(embed=embed, view=view)
 
-    @button_previous.callback
-    async def previous_callback(interaction: disnake.MessageInteraction):
-        nonlocal index
-        if index > 0:
-            index -= 1
-            await bannieres_carrousel(interaction, index)
-
-    @button_next.callback
-    async def next_callback(interaction: disnake.MessageInteraction):
-        nonlocal index
-        if index < len(banners) - 1:
-            index += 1
-            await bannieres_carrousel(interaction, index)
 
 async def logos_carrousel(interaction: disnake.MessageInteraction, index: int):
     embed = disnake.Embed(
-        title="Nos Logos", 
+        title="Nos Logos",
         color=disnake.Color.blue()
     )
     embed.set_image(url=logos[index])
-    
-    button_previous = disnake.ui.Button(
-        label="Précédent", 
-        style=disnake.ButtonStyle.secondary, 
-        custom_id="previous_logo", 
-        disabled=(index == 0)
-    )
-    button_next = disnake.ui.Button(
-        label="Suivant", 
-        style=disnake.ButtonStyle.secondary, 
-        custom_id="next_logo", 
-        disabled=(index == len(logos) - 1)
-    )
 
-    view = disnake.ui.View()
-    view.add_item(button_previous)
-    view.add_item(button_next)
+    view = CarouselView(logos, index, logos_carrousel)
 
     await interaction.response.edit_message(embed=embed, view=view)
 
-    @button_previous.callback
-    async def previous_callback(interaction: disnake.MessageInteraction):
-        nonlocal index
-        if index > 0:
-            index -= 1
-            await logos_carrousel(interaction, index)
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def services(ctx):
+    view = Services()
 
-    @button_next.callback
-    async def next_callback(interaction: disnake.MessageInteraction):
-        nonlocal index
-        if index < len(logos) - 1:
-            index += 1
-            await logos_carrousel(interaction, index)
-
-# Menu pour les services
-async def services_menu(interaction: disnake.MessageInteraction):
     embed = disnake.Embed(
-        title="Nos Services", 
-        description="Choisissez un service", 
+        title="`🔎` Nos Services", 
+        description="Choisissez une option ci-dessous `📍`", 
         color=disnake.Color.red()
     )
     
-    options = [
-        disnake.SelectOption(label="📸 Graphisme", description="Voir nos tarifs pour le graphisme"),
-        disnake.SelectOption(label="🪷 Nitro", description="Voir nos tarifs pour les nitro")
-    ]
-    
-    select = disnake.ui.Select(
-        placeholder="Choisissez un service", 
-        options=options
-    )
-
-    view = disnake.ui.View()
-    view.add_item(select)
-
-    @select.callback
-    async def services_callback(interaction: disnake.MessageInteraction):
-        selected_option = interaction.values[0]
-
-        if selected_option == "📸 Graphisme":
-            embed_tarif_graphisme = disnake.Embed(
-                title="Tarifs Graphisme", 
-                description=TarifGraph, 
-                color=disnake.Color.red()
-            )
-            embed_tarif_graphisme.add_field(
-                name='Ouvre un ticket:', 
-                value='https://discord.com/channels/1251476405112537148/1270457969146069124'
-            )
-            await interaction.response.send_message(embed=embed_tarif_graphisme, ephemeral=True)
-        elif selected_option == "🪷 Nitro":
-            embed_tarif_nitro = disnake.Embed(
-                title="Nos Services Nitro", 
-                description=TarifNitro, 
-                color=disnake.Color.red()
-            )
-            embed_tarif_nitro.add_field(
-                name='Ouvre un ticket:', 
-                value='https://discord.com/channels/1251476405112537148/1270457969146069124'
-            )
-            await interaction.response.send_message(embed=embed_tarif_nitro, ephemeral=True)
-
-    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-
-
+    embed.set_image(url='https://media.discordapp.net/attachments/1287467634534776923/1287470797019021476/5rEHGf6.png?ex=66f252de&is=66f1015e&hm=53af9c868923a458bc34d588403fa01389585bcc6512f8549ddc34338e01e288&=&format=webp&quality=lossless&width=1440&height=480')
+    await ctx.send(embed=embed, view=view)
 
 
 PunchList = [Gif.Punch1, Gif.Punch2, Gif.Punch3, Gif.Punch4, Gif.Punch5, Gif.Punch6, Gif.Punch7, Gif.Punch8, Gif.Punch9, Gif.Punch10, Gif.Punch11, Gif.Punch12, Gif.Punch13, Gif.Punch14, Gif.Punch15]
