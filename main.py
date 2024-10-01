@@ -31,7 +31,7 @@ intents.members = True
 
 questions = []
 
-bot = commands.Bot(command_prefix='.', intents=intents, help_command=None)
+bot = commands.Bot(command_prefix='+', intents=intents, help_command=None)
 
 @bot.event
 async def on_ready():
@@ -374,27 +374,6 @@ async def suspend(ctx, membre: disnake.Member, temps: str):
     await ctx.send(f"La suspension de {membre.mention} est terminée.", ephemeral=True)
 
 
-@bot.command(name='réunion', description='Organiser une réunion staff')
-@commands.has_any_role('📖〢Gestion Serveur', '📂〢Haut staff')
-async def réunion(ctx, date: str, heures: str):
-    channel = disnake.utils.get(ctx.guild.text_channels, name='💠〃réunion')  
-    role_staff = disnake.utils.get(ctx.guild.roles, name='📂〢Staff')
-    role_haut_staff = disnake.utils.get(ctx.guild.roles, name='📂〢Haut staff')
-
-    if not channel:
-        await ctx.send("Le salon de réunion spécifié n'existe pas.", delete_after=5)
-        return
-
-    embed = disnake.Embed(
-        title='Annonce Réunion', 
-        description=f'Une réunion aura lieu le {date} à {heures}.', 
-        color=disnake.Color.blue()
-    )
-    embed.set_image(url='https://i.ibb.co/dbPZcmV/c92885e55b3f6deb5a626d0e4f984040.gif')
-
-    await channel.send(content=f"{role_staff.mention} {role_haut_staff.mention}", embed=embed)
-    await ctx.send(f"Réunion organisée pour le {date} à {heures}.", delete_after=3)
-
 
 @bot.command(name='ban', description='Bannir un utilisateur')
 @commands.has_permissions(administrator=True)
@@ -455,34 +434,18 @@ async def ban_error(ctx, error):
         await ctx.send("Une erreur est survenue.")
 
 
-@bot.command(name='rm_staff', description='Enregistrer une plainte contre un membre du staff')
-@commands.has_role('📂〢Staff')
-async def rm_staff(ctx, membre: disnake.Member, plainte: str):
-    guild = ctx.guild
-    channel = disnake.utils.get(guild.text_channels, name="📑〃staff-bilan")
-    if channel:
-        embed = disnake.Embed(
-            title=f"Plainte déposée contre {membre.name}",
-            description=f"Raison : {plainte}",
-            color=disnake.Colour.dark_gray()
-        )
-        await channel.send(embed=embed)
-        await ctx.send(f"Plainte enregistrée contre {membre.name}.")
-    else:
-        await ctx.send("Le canal de bilan spécifié n'existe pas.")
-
 PROMOTION_ROLES = {
     "Gestion": ['📖〢Gestion Serveur', '📂〢Staff', '📂〢Haut staff'],
     "Manager": ['⚙️〢Manager', '📂〢Staff', '📂〢Haut staff'],
     "BotManager": ['🤖〢Bot Manager', '📂〢Haut staff', '📂〢Staff'],
     "Gerant": ['⚒️〢Gerant', '📂〢Staff', '📂〢Haut staff'],
-    "SuperModérateur": ['🌺〢Super Modérateur', '📂〢Staff'],
-    "Moderateur": ['🛠️〢Modérateur', '📂〢Staff'],
+    "SupModo": ['🌺〢Super Modérateur', '📂〢Staff'],
+    "Modo": ['🛠️〢Modérateur', '📂〢Staff'],
     "Helpeur": ['🎽〢Helpeur', '📂〢Staff'],
-    "Interim": ['🎇〢Interim', '📂〢Staff']
+    "Inte": ['🎇〢Interim', '📂〢Staff']
 }
 
-@bot.command(name='promotion', description='promouvoir un membre')
+@bot.command(name='rank')
 @commands.has_role('📖〢Gestion Serveur')  
 async def promouvoir(ctx, membre: disnake.Member, role: str):
     roles_to_give = PROMOTION_ROLES.get(role)
@@ -492,11 +455,11 @@ async def promouvoir(ctx, membre: disnake.Member, role: str):
         roles_to_add = [r for r in roles_to_add if r is not None]
 
         if not roles_to_add:
-            await ctx.send("Aucun rôle valide trouvé pour la promotion.", delete_after=5)
+            await ctx.send("Aucun rôle valide trouvé pour le rank.", delete_after=5)
             return
 
         await membre.add_roles(*roles_to_add)
-        await ctx.send(f"{membre.mention} a été promu au rôle {role}.")
+        await ctx.send(f"{membre.mention} a été rank au rôle {role}.")
     else:
         await ctx.send(f"Rôle {role} invalide.", delete_after=5)
 
