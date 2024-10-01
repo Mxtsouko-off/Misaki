@@ -838,12 +838,11 @@ api = 'https://misaki-fvgz.onrender.com/gif'
 reponse = requests.get(api)
 data = reponse.json()
 
-PunchList = [data['Punch1'],data['Punch2'],data['Punch3'],data['Punch4'],data['Punch5'],data['Punch6'],data['Punch7'],data['Punch8'],data['Punch9'],data['Punch10'],data['Punch11'],data['Punch12'],data['Punch13'],data['Punch14'],data['Punch15']]
-KissList = [data['Kiss1'],data['Kiss2'],data['Kiss3'],data['Kiss4'],data['Kiss5'],data['Kiss6'],data['Kiss7'],data['Kiss8'],data['Kiss9'],data['Kiss10'],data['Kiss11'],data['Kiss12'],data['Kiss13'],data['Kiss14'],data['Kiss15'],]
-HugList = [data['Hug1'],data['Hug2'],data['Hug3'],data['Hug4'],data['Hug5'],data['Hug6'],data['Hug7'],data['Hug8'],data['Hug9'],data['Hug10'],data['Hug11'],data['Hug12'],data['Hug13'],data['Hug14'],data['Hug15'],]
-
-
+PunchList = [data[f'Punch{i}'] for i in range(1, 15)]
+KissList = [data[f'Kiss{i}'] for i in range(1, 15)]
+HugList = [data[f'Hug{i}'] for i in range(1, 15)]
         
+
 @bot.command()
 async def joke(ctx):
     url = "https://v2.jokeapi.dev/joke/Programming,Miscellaneous,Pun,Spooky,Christmas?lang=fr"
