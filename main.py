@@ -834,10 +834,14 @@ async def services(ctx):
     embed.set_image(url='https://media.discordapp.net/attachments/1287467634534776923/1287470797019021476/5rEHGf6.png?ex=66f252de&is=66f1015e&hm=53af9c868923a458bc34d588403fa01389585bcc6512f8549ddc34338e01e288&=&format=webp&quality=lossless&width=1440&height=480')
     await ctx.send(embed=embed, view=view)
 
+api = 'https://misaki-fvgz.onrender.com/gif'
+reponse = requests.get(api)
+data = reponse.json()
 
-PunchList = [Gif.Punch1, Gif.Punch2, Gif.Punch3, Gif.Punch4, Gif.Punch5, Gif.Punch6, Gif.Punch7, Gif.Punch8, Gif.Punch9, Gif.Punch10, Gif.Punch11, Gif.Punch12, Gif.Punch13, Gif.Punch14, Gif.Punch15]
-KissList =  [Gif.Kiss1, Gif.Kiss2, Gif.Kiss3, Gif.Kiss4, Gif.Kiss5, Gif.Kiss6, Gif.Kiss7, Gif.Kiss8, Gif.Kiss9, Gif.Kiss10, Gif.Kiss11, Gif.Kiss12, Gif.Kiss13, Gif.Kiss14, Gif.Kiss15]
-HugList = [Gif.Hug1, Gif.Hug2, Gif.Hug3, Gif.Hug4, Gif.Hug5, Gif.Hug6, Gif.Hug7, Gif.Hug8, Gif.Hug9, Gif.Hug10, Gif.Hug11, Gif.Hug12, Gif.Hug13, Gif.Hug14, Gif.Hug15]
+PunchList = [data['Punch1'],data['Punch2'],data['Punch3'],data['Punch4'],data['Punch5'],data['Punch6'],data['Punch7'],data['Punch8'],data['Punch9'],data['Punch10'],data['Punch11'],data['Punch12'],data['Punch13'],data['Punch14'],data['Punch15']]
+KissList = [data['Kiss1'],data['Kiss2'],data['Kiss3'],data['Kiss4'],data['Kiss5'],data['Kiss6'],data['Kiss7'],data['Kiss8'],data['Kiss9'],data['Kiss10'],data['Kiss11'],data['Kiss12'],data['Kiss13'],data['Kiss14'],data['Kiss15'],]
+HugList = [data['Hug1'],data['Hug2'],data['Hug3'],data['Hug4'],data['Hug5'],data['Hug6'],data['Hug7'],data['Hug8'],data['Hug9'],data['Hug10'],data['Hug11'],data['Hug12'],data['Hug13'],data['Hug14'],data['Hug15'],]
+
 
         
 @bot.command()
