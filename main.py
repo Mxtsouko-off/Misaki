@@ -161,47 +161,6 @@ async def help(ctx):
 
     await ctx.send(embed=embed_moderation)
 
-
-
-    
-
-
-Pub = '''
-_ _                               ***/LaTaverne*** ``🍻`` *!*
-
-_ _    ✧･    ``🌸``** Animes**    ⨯˚₊‧    ``🎉`` **Giveaways**    ･⊹
-
-_ _                ⊹･    ``🎨``** Graphisme**    ⨯˚₊‧    ``🎊`` **Nitro**    ･✧
-
-_ _    ✧･    ``🎮``** Gaming**    ⨯˚₊‧    ``💻`` **Developement**    ･⊹
-
-_ _                           ⊹･    ``⚙️``** Optimisation**    ･⊹
-
-_ _``📣`` **Recrutement Ouvert & Partenariat également ouvert**
-
-_ _                                     [``🪭`` **Rejoignez-nous **](https://media.discordapp.net/attachments/1280352059031425035/1282095507841351692/1af689d42bdb7686df444f22925f9e89.gif?ex=66de1bfd&is=66dcca7d&hm=2101c534687cb4eab0396f632e53817f56db5fcbf0175b0304ebd375abd39c2b&=&width=1193&height=671) *!*  
-
-_ _                                https://discord.gg/x7G3vgx9kK
-'''
-
-
-
-
-@bot.event
-async def on_message(message):
-
-    if re.search(r'discord\.gg|discord\.com|discord\.me|discord\.app|discord\.io', message.content, re.IGNORECASE):
-            await message.delete()
-            warning_message = await message.channel.send(f"{message.author.mention}, les liens Discord ne sont pas autorisés dans ce serveur.")
-            await asyncio.sleep(5)
-            await warning_message.delete()
-            return
-
-    await bot.process_commands(message)
-
-
-
-
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def partner(ctx, channel: disnake.TextChannel):
