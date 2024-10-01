@@ -8,9 +8,9 @@ import requests
 import aiohttp
 from datetime import timedelta
 import flask
-from flask import Flask
+from flask import Flask, jsonify
 from threading import Thread
-
+import json
 from datetime import datetime, timedelta
 
 
@@ -184,96 +184,13 @@ _ _                                     [``🪭`` **Rejoignez-nous **](https://m
 _ _                                https://discord.gg/x7G3vgx9kK
 '''
 
-class Gif:
-    Punch1 = 'https://c.tenor.com/f3J-yZcZfU0AAAAC/tenor.gif'
-    Punch2 = 'https://media.tenor.com/nF_grpASXygAAAAj/bubu-dudu.gif'
-    Punch3 = 'https://media.tenor.com/XIkC63044qYAAAAj/nico-and-sen-frog-helicopter-punch.gif'
-    Punch4 = 'https://media.tenor.com/_xAtEAKEbuQAAAAj/porkcoin-pork.gif'
-    Punch5 = 'https://media.tenor.com/CArnMwDCNPwAAAAj/jinzhan-lily-and-marigold.gif'
-    Punch6 = 'https://media.tenor.com/ntFYu5-eBy4AAAAj/fgo-fate.gif'
-    Punch7 = 'https://c.tenor.com/kw5lYGbw8oAAAAAC/tenor.gif'
-    Punch8 = 'https://media.tenor.com/yA_KtmPI1EMAAAAM/hxh-hunter-x-hunter.gif'
-    Punch9 = 'https://media.tenor.com/YGKPpkNN6g0AAAAM/anime-jujutsu-kaisen-anime-punch.gif'
-    Punch10 = 'https://media.tenor.com/Kbit6lroRFUAAAAM/one-punch-man-saitama.gif'
-    Punch11 = 'https://media.tenor.com/gmvdv-e1EhcAAAAM/weliton-amogos.gif'
-    Punch12 = 'https://media.tenor.com/YQ08ifsOb0EAAAAM/anime-angry.gif'
-    Punch13 = 'https://media.tenor.com/hu9e3k1zr0IAAAAM/pjsk-pjsk-anime.gif'
-    Punch14 = 'https://media.tenor.com/OYv6aDua76wAAAAM/hanagaki-takemichi-takemichi.gif'
-    Punch15 = 'https://media.tenor.com/tItp51ABXK4AAAAM/punch-eren.gif'
 
-    Hug1 = 'https://media.tenor.com/MVK93pHLpz4AAAAM/anime-hug-anime.gif'
-    Hug2 = 'https://media.tenor.com/c2SMIhi33DMAAAAM/cuddle-bed-hug.gif'
-    Hug3 = 'https://media.tenor.com/J7eGDvGeP9IAAAAM/enage-kiss-anime-hug.gif'
-    Hug4 = 'https://media.tenor.com/wWFm70VeC7YAAAAM/hug-darker-than-black.gif'
-    Hug5 = 'https://media.tenor.com/kCZjTqCKiggAAAAM/hug.gif'
-    Hug6 = 'https://media.tenor.com/qVWUEYImyKAAAAAM/sad-hug-anime.gif'
-    Hug7 = 'https://media.tenor.com/bLttPccI_I4AAAAM/cuddle-anime.gif'
-    Hug8 = 'https://media.tenor.com/iyztKN68avcAAAAM/aharen-san-aharen-san-anime.gif'
-    Hug9 = 'https://media.tenor.com/RWD2XL_CxdcAAAAM/hug.gif'
-    Hug10 = 'https://media.tenor.com/jSr41Jz0CQYAAAAM/anime-hug-anime-girls.gif'
-    Hug11 = 'https://media.tenor.com/sl3rfZ7mQBsAAAAM/anime-hug-canary-princess.gif'
-    Hug12 = 'https://media.tenor.com/SAL_XAuyuJAAAAAM/cute-anime.gif'
-    Hug13 = 'https://media.tenor.com/Y9J2vBrjPCsAAAAM/anime-anime-hug.gif'
-    Hug14 = 'https://media.tenor.com/oB-fcENXEasAAAAM/juvia-meredy.gif'
-    Hug15 = 'https://media.tenor.com/kCBUETL9jPAAAAAM/anime-hug.gif'
-
-    Kiss1 = 'https://media.tenor.com/OByUsNZJyWcAAAAM/emre-ada.gif'
-    Kiss2 = 'https://media.tenor.com/rm3WYOj5pR0AAAAM/engage-kiss-anime-kiss.gif'
-    Kiss3 = 'https://media.tenor.com/XB3mEB77l7EAAAAM/kiss.gif'
-    Kiss4 = 'https://media.tenor.com/dn_KuOESmUYAAAAM/engage-kiss-anime-kiss.gif'
-    Kiss5 = 'https://media.tenor.com/79RkCtre5XYAAAAM/a-sign-of-affection-yuki-and-itsuomi-kiss.gif'
-    Kiss6 = 'https://media.tenor.com/sn-5HBmgdPgAAAAM/kiss-anime-anime.gif'
-    Kiss7 = 'https://media.tenor.com/GoPV-W2pxMUAAAAM/kiss.gif'
-    Kiss8 = 'https://media.tenor.com/6HDHE1KRK_wAAAAM/kiss-anime.gif'
-    Kiss9 = 'https://media.tenor.com/3xrkm45MqkIAAAAM/anime-kiss.gif'
-    Kiss10 = 'https://media.tenor.com/YHxJ9NvLYKsAAAAM/anime-kiss.gif'
-    Kiss11 = 'https://media.tenor.com/cKJjPT4OdC0AAAAM/kiss-anime-kiss-anime-couple-gif.gif'
-    Kiss12 = 'https://media.tenor.com/Fyq9izHlreQAAAAM/my-little-monster-haru-yoshida.gif'
-    Kiss13 = 'https://media.tenor.com/GdQYPbRffvAAAAAM/matching-anime.gif'
-    Kiss14 = 'https://media.tenor.com/0bVlu72sZGMAAAAM/tonikawa-tonikaku-kawaii.gif'
-    Kiss15 = 'https://media.tenor.com/1jXN_ObuwV0AAAAM/lick-cat-licking.gif'
 
 
 @bot.event
 async def on_message(message):
-    if message.author == bot.user:
-        return
 
-    if "Notre Pub" in message.content:
-        await message.channel.send(content=message.author.mention)
-        await message.channel.send(Pub)
-
-    if "Hierarchie" in message.content:
-        await message.channel.send(content=message.author.mention)
-        await message.channel.send("https://discord.com/channels/1251476405112537148/1268870540794269698")
-
-    salutations = ["Bonjour", "Salut", "Coucou", "Yo"]
-    if any(salutation in message.content for salutation in salutations):
-        await message.channel.send(f"{message.content} {message.author.mention} <:coucouw:1282620654788542509>", delete_after=5)
-
-    if isinstance(message.channel, disnake.DMChannel) and message.author != bot.user:
-        guild = disnake.utils.get(bot.guilds, name="La Taverne 🍻")
-        logs_channel = disnake.utils.get(guild.text_channels, name="📁〃logs-misaki")
-
-        if logs_channel is None:
-            return
-
-        warning_message = "⚠️ Attention : cette conversation est retranscrite dans le serveur **La Taverne 🍻**. N'hésitez pas à poser toutes vos questions ici."
-        await message.channel.send(warning_message)
-
-        embed = disnake.Embed(
-            title="Nouveau Message Privé",
-            description=f"**Auteur**: {message.author.mention}\n**Contenu**: {message.content}",
-            color=disnake.Color.blue()
-        )
-        await logs_channel.send(embed=embed)
-
-        member = guild.get_member(message.author.id)
-        if member and (member.guild_permissions.administrator or any(role.id == 1280429826414477373 for role in member.roles)):
-            await bot.process_commands(message)
-            return
-
-        if re.search(r'discord\.gg|discord\.com|discord\.me|discord\.app|discord\.io', message.content, re.IGNORECASE):
+    if re.search(r'discord\.gg|discord\.com|discord\.me|discord\.app|discord\.io', message.content, re.IGNORECASE):
             await message.delete()
             warning_message = await message.channel.send(f"{message.author.mention}, les liens Discord ne sont pas autorisés dans ce serveur.")
             await asyncio.sleep(5)
@@ -1015,6 +932,19 @@ async def hug(ctx, user: disnake.Member):
     await ctx.send(content=user.mention, embed=em)
 
 app = Flask('')
+
+GIF_FILE = 'Gif.json'
+
+def load_GIFLIST():
+    if os.path.exists():
+        with open(GIF_FILE, 'r') as f:
+            return json.load(f)
+    return []
+
+
+@app.route('/gif', methods=['GET'])
+def authorized_uuid():
+    return jsonify(load_GIFLIST()), 200
 
 @app.route('/')
 def main():
