@@ -834,7 +834,7 @@ async def services(ctx):
     embed.set_image(url='https://media.discordapp.net/attachments/1287467634534776923/1287470797019021476/5rEHGf6.png?ex=66f252de&is=66f1015e&hm=53af9c868923a458bc34d588403fa01389585bcc6512f8549ddc34338e01e288&=&format=webp&quality=lossless&width=1440&height=480')
     await ctx.send(embed=embed, view=view)
 
-api = 'https://misaki-fvgz.onrender.com/gif'
+api = 'https://raw.githubusercontent.com/Mxtsouko-off/Misaki/refs/heads/main/Gif.json'
 reponse = requests.get(api)
 data = reponse.json()
 
@@ -945,9 +945,6 @@ def load_GIFLIST():
     return []
 
 
-@app.route('/gif', methods=['GET'])
-def authorized_uuid():
-    return jsonify(load_GIFLIST()), 200
 
 @app.route('/')
 def main():
