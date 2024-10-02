@@ -335,7 +335,7 @@ async def soutien(ctx, channel: disnake.TextChannel):
 ROLE_NAME = "🥥 〢Membre"
 
 @bot.command()
-@commands.has_permissions('📂〢Staff')
+@commands.has_role('📂〢Staff')
 async def lock(ctx):
     role = disnake.utils.get(ctx.guild.roles, name=ROLE_NAME)
     if role:
@@ -418,7 +418,7 @@ async def give(ctx, membre: str, *, role_name: str):
 
 
 @bot.command()
-@commands.has_permissions('📂〢Staff')
+@commands.has_role('📂〢Staff')
 async def unlock(ctx):
     role = disnake.utils.get(ctx.guild.roles, name=ROLE_NAME)
     if role:
@@ -963,7 +963,7 @@ def save_warnings(warnings):
 warnings = load_warnings_from_api()
 
 @bot.command(name="warn")
-@commands.has_permissions(kick_members=True)
+@commands.has_role('📂〢Staff')
 async def warn(ctx, member: disnake.Member, *, reason="Aucune raison fournie"):
     global warnings  
     if str(member.id) not in warnings:
@@ -974,7 +974,7 @@ async def warn(ctx, member: disnake.Member, *, reason="Aucune raison fournie"):
     await ctx.send(f"{member.mention} a été averti pour : {reason}")
 
 @bot.command(name="warnings")
-@commands.has_permissions(kick_members=True)
+@commands.has_role('📂〢Staff')
 async def warnings_command(ctx, member: disnake.Member):
     if str(member.id) not in warnings or len(warnings[str(member.id)]) == 0:
         await ctx.send(f"{member.mention} n'a aucun avertissement.")
@@ -983,7 +983,7 @@ async def warnings_command(ctx, member: disnake.Member):
         await ctx.send(f"Voici les avertissements de {member.mention} :\n{warn_list}")
         
 @bot.command(name="clearwarn")
-@commands.has_permissions(kick_members=True)
+@commands.has_role('📂〢Staff')
 async def clearwarn(ctx, member: disnake.Member, index: int):
     global warnings   
     if str(member.id) not in warnings or len(warnings[str(member.id)]) == 0:
