@@ -320,7 +320,7 @@ async def setup_owner(ctx):
             await ctx.send(embed=embed)
 
 
-@bot.command(name='lock', description='unlock channel')
+@bot.command(name='unlock', description='unlock channel')
 @commands.has_permissions(manage_channels=True)
 async def unlock(ctx):
     role = disnake.utils.get(ctx.guild.roles, name=ROLE_NAME)
@@ -423,9 +423,6 @@ async def give(ctx, member: str, *, role_name: str):
 
     await message.edit(embed=embed)
 
-import disnake
-from disnake.ext import commands
-import asyncio
 
 @bot.command(name='suspend', description='Suspend a staff member')
 @commands.has_permissions(manage_guild=True)
