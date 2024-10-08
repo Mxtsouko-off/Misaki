@@ -43,6 +43,78 @@ async def statut():
         )
     )
 
+user_stats = {}
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    if message.author.id not in user_stats:
+        user_stats[message.author.id] = {
+            "messages": 0,
+            "voice_time": 0
+        }
+    
+    user_stats[message.author.id]["messages"] += 1
+    await bot.process_commands(message)
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if member.bot:
+        return
+
+    if before.channel is None and after.channel is not None:  
+        user_stats[member.id]["voice_start"] = asyncio.get_event_loop().time() 
+    elif before.channel is not None and after.channel is None:  
+        if member.id in user_stats and "voice_start" in user_stats[member.id]:
+            voice_time = asyncio.get_event_loop().time() - user_stats[member.id]["voice_start"]
+            user_stats[member.id]["voice_time"] += voice_time  
+
+            del user_stats[member.id]["voice_start"]
+
+@bot.command(name='stat')
+async def stat(ctx, option: str):
+    user_id = ctx.author.id
+    stats = user_stats.get(user_id, None)
+
+    if option.lower() == 'voice':
+        voice_time = stats["voice_time"] if stats else 0
+        hours, remainder = divmod(voice_time, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        await ctx.send(f"You have spent **{int(hours)} hours, {int(minutes)} minutes, and {int(seconds)} seconds** in voice channels.")
+    
+    elif option.lower() == 'msg':
+        message_count = stats["messages"] if stats else 0
+        await ctx.send(f"You have sent a total of **{message_count} messages**.")
+    
+    else:
+        await ctx.send("Invalid option. Use `voice` to check voice time or `msg` to check message count.")
+
+@bot.command(name='options')
+async def options(ctx, option: str, user: disnake.User = None):
+    if user is None:
+        user = ctx.author 
+
+    user_id = user.id
+    stats = user_stats.get(user_id, None)
+
+    if option.lower() == 'user':
+        voice_time = stats["voice_time"] if stats else 0
+        message_count = stats["messages"] if stats else 0
+
+        hours, remainder = divmod(voice_time, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        embed = disnake.Embed(title=f"Statistics for {user.name}", color=disnake.Color.dark_gray())
+        embed.add_field(name="Voice Time", value=f"{int(hours)} hours, {int(minutes)} minutes, and {int(seconds)} seconds", inline=False)
+        embed.add_field(name="Message Count", value=f"{message_count} messages", inline=False)
+
+        await ctx.send(embed=embed)
+    
+    else:
+        await ctx.send("Invalid option. Use `user` to check user statistics.")
+
 
 @bot.command(name='msg_partner', descriptions='show message partner conditions')
 @commands.has_permissions(administrator=True)
@@ -173,6 +245,9 @@ async def help_command(ctx):
 giveaways = {}
 
 def convert_duration(duration: str):
+    if not duration[:-1].isdigit():  # Check if the numeric part is valid
+        return None
+    
     if duration[-1] == 's':
         return int(duration[:-1])
     elif duration[-1] == 'm':
@@ -320,19 +395,9 @@ async def lock(ctx):
 @commands.has_permissions(manage_messages=True)
 async def say(ctx, *, message: str):
     await ctx.message.delete()
-    embed = disnake.Embed(
-        description=message,
-        color=disnake.Color.dark_gray()
-    )
-    banner_url = ctx.guild.banner.url if ctx.guild.banner else None
-    icon_url = ctx.guild.icon.url if ctx.guild.icon else None
 
-    if icon_url:
-        embed.set_thumbnail(url=icon_url)
-    if banner_url:
-        embed.set_image(url=banner_url)
     
-    await ctx.send(embed=embed)
+    await ctx.send(message)
 
 
 @bot.command(name='modify', description='modify bot message with id')
