@@ -25,7 +25,7 @@ bot = commands.Bot(command_prefix='+', intents=intents, help_command=None)
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}.")
-    statut.start
+    statut.start()
     
 @tasks.loop(seconds=3)
 async def statut():
@@ -156,14 +156,99 @@ async def clear(ctx):
 async def help_command(ctx):
     embed = disnake.Embed(
         title="Help Menu",
-        description="```\n" + "\n".join(f"+`**{command.name}**` / `**{command.description}**`" for command in bot.commands) + "\n```",
         color=disnake.Color.dark_gray()
     )
     embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else None)
     embed.set_image(url=ctx.guild.banner.url if ctx.guild.banner else None)
 
+    for command in bot.commands:
+        embed.add_field(
+            name=f"`{command.name}`",
+            value=f"**Description:** {command.description or 'No description provided.'}",
+            inline=False
+        )
+
     await ctx.send(embed=embed)
 
+giveaways = {}
+
+def convert_duration(duration: str):
+    if duration[-1] == 's':
+        return int(duration[:-1])
+    elif duration[-1] == 'm':
+        return int(duration[:-1]) * 60
+    elif duration[-1] == 'h':
+        return int(duration[:-1]) * 3600
+    elif duration[-1] == 'd':
+        return int(duration[:-1]) * 86400
+    else:
+        return None
+
+@bot.command(name='giveaway')
+@commands.has_permissions(manage_messages=True)
+async def start_giveaway(ctx, prize: str, conditions: str, duration: str, *, image=None):
+    duration_seconds = convert_duration(duration)
+    if duration_seconds is None:
+        await ctx.send("Invalid duration format. Use 's' for seconds, 'm' for minutes, 'h' for hours, or 'd' for days.")
+        return
+
+    embed = disnake.Embed(
+        title="New Giveaway",
+        description=f"Prize: ```{prize}```",
+        color=disnake.Color.dark_gray()
+    )
+    embed.add_field(name="Author", value=ctx.author.mention, inline=True)
+    embed.add_field(name="Time", value=f"**`{duration}`**", inline=True)
+    embed.add_field(name="Conditions", value=conditions, inline=False)
+    
+    if image:
+        embed.set_image(url=image)
+
+    message = await ctx.send(embed=embed)
+    
+    await message.add_reaction("🎉")
+
+    giveaways[message.id] = {
+        "prize": prize,
+        "conditions": conditions,
+        "duration": duration_seconds,
+        "author": ctx.author,
+        "participants": []
+    }
+    
+    for remaining in range(duration_seconds, 0, -1):
+        await asyncio.sleep(1)
+        embed.set_field_at(1, name="Time", value=f"**`{remaining} seconds`**")
+        await message.edit(embed=embed)
+
+    giveaway_data = giveaways.pop(message.id, None)
+    if giveaway_data:
+        participants = giveaway_data["participants"]
+        if participants:
+            winner = random.choice(participants)
+            embed.add_field(name="Winner", value=winner.mention, inline=False)
+            await ctx.send(embed=embed)
+            await winner.send(f"Congratulations! You've won: **{giveaway_data['prize']}**")
+        else:
+            embed.add_field(name="Winner", value="No participants.", inline=False)
+            await ctx.send(embed=embed)
+    
+    await message.clear_reaction("🎉")
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    if reaction.emoji == "🎉" and not user.bot:
+        message_id = reaction.message.id
+        if message_id in giveaways:
+            giveaways[message_id]["participants"].append(user)
+
+@bot.event
+async def on_reaction_remove(reaction, user):
+    if reaction.emoji == "🎉" and not user.bot:
+        message_id = reaction.message.id
+        if message_id in giveaways:
+            giveaways[message_id]["participants"].remove(user)
+            
 @bot.command(name='rules', description='show server rules')
 @commands.has_permissions(manage_messages=True)
 async def rules(ctx, channel: disnake.TextChannel):
