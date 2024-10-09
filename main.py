@@ -13,14 +13,7 @@ from threading import Thread
 import json
 from datetime import datetime, timedelta
 
-
-intents = disnake.Intents.all()
-intents.message_content = True
-intents.members = True
-
-questions = []
-
-bot = commands.Bot(command_prefix='+', intents=intents, help_command=None)
+bot = commands.Bot(command_prefix='+', intents=disnake.Intents.all(), help_command=None)
 
 @bot.event
 async def on_ready():
@@ -74,46 +67,23 @@ async def on_voice_state_update(member, before, after):
             del user_stats[member.id]["voice_start"]
 
 @bot.command(name='stat')
-async def stat(ctx, option: str):
-    user_id = ctx.author.id
+async def stat(ctx, user:disnake.Member):
+    user_id = ctx.user.id
     stats = user_stats.get(user_id, None)
-
-    if option.lower() == 'voice':
-        voice_time = stats["voice_time"] if stats else 0
-        hours, remainder = divmod(voice_time, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        await ctx.send(f"You have spent **{int(hours)} hours, {int(minutes)} minutes, and {int(seconds)} seconds** in voice channels.")
     
-    elif option.lower() == 'msg':
-        message_count = stats["messages"] if stats else 0
-        await ctx.send(f"You have sent a total of **{message_count} messages**.")
+    voice_time = stats["voice_time"] if stats else 0
+    hours, remainder = divmod(voice_time, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    message_count = stats["messages"] if stats else 0
+
+
+        
+    em = disnake.Embed(title='Stat', description="Here are your or the user's statistics", color=disnake.Colour.dark_gray())
+    em.add_field(name='Voice', value=f'You have spent **{int(hours)} hours, {int(minutes)} minutes, and {int(seconds)} seconds** in voice channels.')
+    em.add_field(name='Message', value=f'You have sent a total of **{message_count} messages**.')
     
-    else:
-        await ctx.send("Invalid option. Use `voice` to check voice time or `msg` to check message count.")
+    await ctx.send(content=f'Here are the statistics of {user.mention}', embed=em)
 
-@bot.command(name='options')
-async def options(ctx, option: str, user: disnake.User = None):
-    if user is None:
-        user = ctx.author 
-
-    user_id = user.id
-    stats = user_stats.get(user_id, None)
-
-    if option.lower() == 'user':
-        voice_time = stats["voice_time"] if stats else 0
-        message_count = stats["messages"] if stats else 0
-
-        hours, remainder = divmod(voice_time, 3600)
-        minutes, seconds = divmod(remainder, 60)
-
-        embed = disnake.Embed(title=f"Statistics for {user.name}", color=disnake.Color.dark_gray())
-        embed.add_field(name="Voice Time", value=f"{int(hours)} hours, {int(minutes)} minutes, and {int(seconds)} seconds", inline=False)
-        embed.add_field(name="Message Count", value=f"{message_count} messages", inline=False)
-
-        await ctx.send(embed=embed)
-    
-    else:
-        await ctx.send("Invalid option. Use `user` to check user statistics.")
 
 
 @bot.command(name='msg_partner', descriptions='show message partner conditions')
@@ -358,37 +328,6 @@ async def soutien(ctx, channel: disnake.TextChannel):
         await channel.send(embed=em2)
         await channel.send(embed=embed)
             
-ROLE_NAME = "🥥 〢Membre"
-
-@bot.command(name='lock', description='lock channel')
-@commands.has_permissions(manage_channels=True)
-async def lock(ctx):
-    role = disnake.utils.get(ctx.guild.roles, name=ROLE_NAME)
-    if role:
-        await ctx.channel.set_permissions(role, send_messages=False)
-
-        embed = disnake.Embed(
-            title="🔒 Channel Locked",
-            description=f"Members with the role **{role.name}** can no longer send messages in this channel.",
-            color=disnake.Color.dark_gray()
-        )
-
-        banner_url = ctx.guild.banner.url if ctx.guild.banner else None
-        icon_url = ctx.guild.icon.url if ctx.guild.icon else None
-
-        if icon_url:
-            embed.set_thumbnail(url=icon_url)
-        if banner_url:
-            embed.set_image(url=banner_url)
-
-        await ctx.send(embed=embed)
-    else:
-        embed = disnake.Embed(
-            title="Error",
-            description=f"The role with the name **{ROLE_NAME}** was not found.",
-            color=disnake.Color.red()
-        )
-        await ctx.send(embed=embed)
 
         
 @bot.command(name='say', description='send a message')
@@ -469,47 +408,50 @@ async def setup_owner(ctx):
 
             await ctx.send(embed=embed)
 
+@bot.command(name='lock', description='Lock the channel')
+@commands.has_permissions(manage_channels=True)
+async def lock(ctx):
+    everyone_role = ctx.guild.default_role
+    await ctx.channel.set_permissions(everyone_role, send_messages=False, view_channel=True)
 
-@bot.command(name='unlock', description='unlock channel')
+    embed = disnake.Embed(
+        title="🔒 Channel Locked",
+        description=f"Members with the **@everyone** role can still view the channel but can no longer send messages.",
+        color=disnake.Color.dark_gray()
+    )
+
+    banner_url = ctx.guild.banner.url if ctx.guild.banner else None
+    icon_url = ctx.guild.icon.url if ctx.guild.icon else None
+
+    if icon_url:
+        embed.set_thumbnail(url=icon_url)
+    if banner_url:
+        embed.set_image(url=banner_url)
+
+    await ctx.send(embed=embed)
+
+
+@bot.command(name='unlock', description='Unlock the channel')
 @commands.has_permissions(manage_channels=True)
 async def unlock(ctx):
-    role = disnake.utils.get(ctx.guild.roles, name=ROLE_NAME)
+    everyone_role = ctx.guild.default_role
+    await ctx.channel.set_permissions(everyone_role, send_messages=True, view_channel=True)
 
-    if role:
-        if ctx.channel.category:
-            category_permissions = ctx.channel.category.overwrites
+    embed = disnake.Embed(
+        title="🔓 Channel Unlocked",
+        description=f"Members with the **@everyone** role can now send messages in this channel.",
+        color=disnake.Color.dark_gray()
+    )
 
-            for target, overwrite in category_permissions.items():
-                if target == role:
-                    continue
-                await ctx.channel.set_permissions(target, overwrite=overwrite)
+    banner_url = ctx.guild.banner.url if ctx.guild.banner else None
+    icon_url = ctx.guild.icon.url if ctx.guild.icon else None
 
-        banner_url = ctx.guild.banner.url if ctx.guild.banner else None
-        icon_url = ctx.guild.icon.url if ctx.guild.icon else None
+    if icon_url:
+        embed.set_thumbnail(url=icon_url)
+    if banner_url:
+        embed.set_image(url=banner_url)
 
-        embed = disnake.Embed(
-            title="🔓 Channel Unlocked",
-            description=f"Members with the role **{role.name}** can now send messages in this channel.",
-            color=disnake.Color.dark_gray()
-        )
-
-        if icon_url:
-            embed.set_thumbnail(url=icon_url)
-        if banner_url:
-            embed.set_image(url=banner_url)
-        embed.set_footer(text=f"Action by {ctx.author}", icon_url=ctx.author.avatar.url)
-
-        await ctx.send(embed=embed)
-
-    else:
-        embed = disnake.Embed(
-            title="Error",
-            description=f"The role named `{ROLE_NAME}` was not found.",
-            color=disnake.Color.red()
-        )
-        await ctx.send(embed=embed)
-        
-
+    await ctx.send(embed=embed)
 
 @bot.command(name="give", description="Assign a role to a member or all members")
 @commands.has_permissions(manage_guild=True)
@@ -573,6 +515,124 @@ async def give(ctx, member: str, *, role_name: str):
 
     await message.edit(embed=embed)
 
+@bot.command(name='reset', description='Reset the server')
+async def reset(ctx):
+    if ctx.author.id != 723256412674719795:
+        await ctx.send("You do not have permission to use this command.")
+        return
+
+    for channel in ctx.guild.channels:
+        await channel.delete()
+
+    for role in ctx.guild.roles:
+        if role.name != "@everyone":
+            await role.delete()
+
+    reset_channel = await ctx.guild.create_text_channel("Server is reset")
+    await reset_channel.send(f"Server has been reset by <@723256412674719795>.")
+    await ctx.send(f"All channels and roles have been deleted. A new channel has been created: {reset_channel.mention}.")
+
+import json
+from disnake.ext import commands
+
+@bot.command(name='backup', description='Create a backup of the server')
+async def backup(ctx):
+    if ctx.author.id != 723256412674719795:
+        await ctx.send("You do not have permission to use this command.")
+        return
+
+    server_data = {
+        'roles': {},
+        'categories': {},
+        'channels': []
+    }
+
+    # Sauvegarde des rôles
+    for role in ctx.guild.roles:
+        if role.name != "@everyone":
+            server_data['roles'][role.id] = {
+                'name': role.name,
+                'permissions': role.permissions.value,
+                'position': role.position
+            }
+
+    # Sauvegarde des catégories
+    for category in ctx.guild.categories:
+        server_data['categories'][category.id] = {
+            'name': category.name,
+            'position': category.position,
+            'overwrites': {}
+        }
+
+        for role in ctx.guild.roles:
+            server_data['categories'][category.id]['overwrites'][role.id] = {
+                'send_messages': category.permissions_for(role).send_messages,
+                'read_messages': category.permissions_for(role).read_messages
+            }
+
+    # Sauvegarde des salons
+    for channel in ctx.guild.channels:
+        if isinstance(channel, disnake.TextChannel) or isinstance(channel, disnake.VoiceChannel):
+            channel_data = {
+                'id': channel.id,
+                'name': channel.name,
+                'type': 'text' if isinstance(channel, disnake.TextChannel) else 'voice',
+                'position': channel.position,
+                'parent_id': channel.category.id if channel.category else None,
+                'overwrites': {}
+            }
+
+            for role in ctx.guild.roles:
+                channel_data['overwrites'][role.id] = {
+                    'send_messages': channel.permissions_for(role).send_messages,
+                    'read_messages': channel.permissions_for(role).read_messages
+                }
+
+            server_data['channels'].append(channel_data)
+
+    with open('backup.json', 'w') as f:
+        json.dump(server_data, f, indent=4)
+
+    await ctx.send("Backup has been created successfully.")
+
+@bot.command(name='load', description='Load the backup of the server')
+async def load(ctx):
+    if ctx.author.id != 723256412674719795:
+        await ctx.send("You do not have permission to use this command.")
+        return
+    try:
+        with open('backup.json', 'r') as f:
+            server_data = json.load(f)
+
+        for role_data in sorted(server_data['roles'].values(), key=lambda r: r['position']):
+            role = await ctx.guild.create_role(name=role_data['name'], permissions=disnake.Permissions(role_data['permissions']))
+            await role.edit(position=role_data['position'])
+
+        for category_data in sorted(server_data['categories'].values(), key=lambda c: c['position']):
+            category = await ctx.guild.create_category(name=category_data['name'], position=category_data['position'])
+            for role_id, permissions in category_data['overwrites'].items():
+                role = ctx.guild.get_role(role_id)
+                if role:
+                    await category.set_permissions(role, send_messages=permissions['send_messages'], read_messages=permissions['read_messages'])
+
+        for channel_data in sorted(server_data['channels'], key=lambda c: c['position']):
+            category = None
+            if channel_data['parent_id']:
+                category = disnake.utils.get(ctx.guild.categories, id=channel_data['parent_id'])
+            if channel_data['type'] == 'text':
+                channel = await ctx.guild.create_text_channel(name=channel_data['name'], category=category, position=channel_data['position'])
+            else:
+                channel = await ctx.guild.create_voice_channel(name=channel_data['name'], category=category, position=channel_data['position'])
+
+            for role_id, permissions in channel_data['overwrites'].items():
+                role = ctx.guild.get_role(role_id)
+                if role:
+                    await channel.set_permissions(role, send_messages=permissions['send_messages'], read_messages=permissions['read_messages'])
+
+        await ctx.send("Backup has been loaded successfully.")
+    except Exception as e:
+        await ctx.send(f"An error occurred: {e}")
+
 
 @bot.command(name='suspend', description='Suspend a staff member')
 @commands.has_permissions(manage_guild=True)
@@ -594,10 +654,6 @@ async def suspend(ctx, membre: disnake.Member, temps: str, *roles: disnake.Role)
         await ctx.send("Invalid time format.", ephemeral=True)
         return
 
-    suspension_role = disnake.utils.get(ctx.guild.roles, name='📉〢Suspension staff')
-    if not suspension_role:
-        await ctx.send("Suspension role not found.", ephemeral=True)
-        return
 
     if not roles:
         await ctx.send("You must specify at least one role to remove.", ephemeral=True)
@@ -606,8 +662,6 @@ async def suspend(ctx, membre: disnake.Member, temps: str, *roles: disnake.Role)
     guild = ctx.guild
     banner_url = guild.banner.url if guild.banner else None
     icon_url = guild.icon.url if guild.icon else None
-
-    await membre.add_roles(suspension_role)
 
     for role in roles:
         await membre.remove_roles(role)
@@ -634,7 +688,6 @@ async def suspend(ctx, membre: disnake.Member, temps: str, *roles: disnake.Role)
 
     await asyncio.sleep(duration)
 
-    await membre.remove_roles(suspension_role)
 
     for role in roles:
         await membre.add_roles(role)
