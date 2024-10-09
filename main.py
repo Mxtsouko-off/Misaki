@@ -39,6 +39,8 @@ async def statut():
         )
     )
     
+staff_status_message = None
+
 @tasks.loop(minutes=3)
 async def update_staff_status():
     global staff_status_message  
@@ -85,10 +87,10 @@ async def update_staff_status():
     else:
         await staff_status_message.edit(embed=embed)
 
-
 @update_staff_status.before_loop
 async def before_update_staff_status():
     await bot.wait_until_ready()
+
 
 @tasks.loop(hours=2)
 async def remind_bumping():
