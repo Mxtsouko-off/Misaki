@@ -22,7 +22,7 @@ async def on_ready():
     
 @tasks.loop(seconds=3)
 async def statut():
-    activity_list = ["discord.gg/miyako", "./help", "Made By Mxtsouko"]
+    activity_list = ["discord.gg/miyakofr", "+help", "Made By Mxtsouko"]
     selected = random.choice(activity_list)
     status_list = [disnake.Status.idle, disnake.Status.do_not_disturb, disnake.Status.online]
     selected_status = random.choice(status_list)
@@ -90,22 +90,20 @@ async def stat(ctx, user:disnake.Member):
 @commands.has_permissions(administrator=True)
 async def partner(ctx, channel: disnake.TextChannel):
         embed_image = disnake.Embed(color=disnake.Colour.dark_gray())
-        embed_image.set_image(url='https://media.discordapp.net/attachments/1280352059031425035/1282095507841351692/1af689d42bdb7686df444f22925f9e89.gif?ex=66e4b37d&is=66e361fd&hm=d47fa94695ca764bc85edc26f2133348bf88347bb8ff2d16563dbd2faf3f7d8c&=&width=1193&height=671')
+        embed_image.set_image(url='https://giffiles.alphacoders.com/728/72850.gif')
 
-        embed = disnake.Embed(title='Conditions', color=disnake.Colour.dark_gray())
-        embed.add_field(name='Membres:', value='Minimum 15 (sans les bots)', inline=False)
-        embed.add_field(name='Partenariat:', value="Pas de serveur NSFW, boutique uniquement, toxique, ou ne respectant pas les ToS. Pas de serveurs pratiquant du ficha, dox ou autres abus.", inline=False)
-        embed.add_field(name='Important:', value="Si vous supprimez notre pub ou quittez le serveur, le partenariat sera annulé, nous ne somme pas obliger de rester sur votre serveur mais vous devez restez sur le notre", inline=False)
-        embed.add_field(name='Mentions:', value="Nous mentionnons uniquement <@&1280683305548906536>. Si votre serveur a moins de 20 membres, vous devez ping everyone.", inline=False)
-        embed.add_field(name='Vérifications:', value="Votre serveur sera vérifié avant de publier votre pub. Si vous cachez un everyone, vous serez sur notre blacklist.", inline=False)
-        
+        embed = disnake.Embed(title='`🍷` Conditions Partenariat', description='`🔎` **Voici les conditions de partenariat avec vos serveur :**', color=disnake.Colour.dark_gray())
+        embed.add_field(name='`🌠` **Serveur de 0 a 100 (Sans les bot)**', value='Mentions: `🌴` Nous: Partenariat, `🍷` Vous: Everyone')
+        embed.add_field(name='`🕊️` **Serveur 100+ (Sans les bot)**', value='Mentions: `🌴` Partenariat des deux coté')
+        embed.add_field(name='`🔥` Rappel', value='Nous ne fesont pas de partenariat avec les serveur (Shop, Nsfw, ou qui ne respecte pas les tos discord)')
+       
         class Ticket(disnake.ui.Button):
             def __init__(self):
-                super().__init__(label="Ticket!", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1270457969146069124")
+                super().__init__(label="Click ici pour ouvrir un Ticket!", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1293641121372831798")
                 
         class NotrePub(disnake.ui.Button):
             def __init__(self):
-                super().__init__(label="Notre Pub!", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1280630287612772496")
+                super().__init__(label="Clique ici pour voir Notre Fiche!", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1293641124799578153")
 
         if channel:
             view = disnake.ui.View()
@@ -119,18 +117,17 @@ async def partner(ctx, channel: disnake.TextChannel):
 @commands.has_permissions(manage_messages=True)
 async def recrutement(ctx, channel: disnake.TextChannel):
         embed_image = disnake.Embed(color=disnake.Colour.dark_gray())
-        embed_image.set_image(url='https://media.discordapp.net/attachments/1280352059031425035/1282095507841351692/1af689d42bdb7686df444f22925f9e89.gif?ex=66e4b37d&is=66e361fd&hm=d47fa94695ca764bc85edc26f2133348bf88347bb8ff2d16563dbd2faf3f7d8c&=&width=1193&height=671')
+        embed_image.set_image(url='https://giffiles.alphacoders.com/728/72850.gif')
 
-        embed = disnake.Embed(title='Conditions', color=disnake.Colour.dark_gray())
-        embed.add_field(name='Age requis:', value='Minimum 14 ans (nous pouvont faire des exeption)', inline=False)
-        embed.add_field(name='Demandé:', value="Nous vous demandons un minimum de maturité et de courtoisie", inline=False)
-        embed.add_field(name='Important:', value="Nous vous demandons de respecter tous les membre du staff et les membre les manque de respect ne sont pas tolérer", inline=False)
-        embed.add_field(name='Nous recherchons:', value="Des Cm/Gp (Community Manager/Gestion partner), des Modérateur/Animateur et des helpeur, ainsi que des giveur drop et drop manager", inline=False)
-        embed.add_field(name='Vérifications:', value="Vous aller passer une periode de teste de 2 semaine", inline=False)
+        embed = disnake.Embed(title='**Miyako** */Recrutement*', description="**Tu souhaites intégrer le staff de` Miyako`, mais tu ne sais pas comment t'y prendre ?**", color=disnake.Colour.dark_gray())
+        embed.add_field(name='`🌴`', value='1. Être âgé de minimum **14 ans**')
+        embed.add_field(name='`🎈`', value='2. Mettre ``/miyakofr`` en **statut**')
+        embed.add_field(name='`🌟`', value='3. Avoir un total de minimum **200 messages** et/ou **2h** de **vocal**')
+        embed.add_field(name='`🕊️`', value='Une fois toutes ces conditions remplies, tu peux ouvrir un ticket Recrutement afin d’être rank !')
         
         class Ticket(disnake.ui.Button):
             def __init__(self):
-                super().__init__(label="Ticket!", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1270457969146069124")
+                super().__init__(label="Ticket!", style=disnake.ButtonStyle.link, url="https://discord.com/channels/1251476405112537148/1293641121372831798")
                 
         class NotrePub(disnake.ui.Button):
             def __init__(self):
@@ -298,7 +295,7 @@ async def on_reaction_remove(reaction, user):
 @commands.has_permissions(manage_messages=True)
 async def rules(ctx, channel: disnake.TextChannel):
     em_img = disnake.Embed()
-    em_img.set_image(url='https://media.discordapp.net/attachments/1280352059031425035/1282095507841351692/1af689d42bdb7686df444f22925f9e89.gif?ex=66e4b37d&is=66e361fd&hm=d47fa94695ca764bc85edc26f2133348bf88347bb8ff2d16563dbd2faf3f7d8c&=&width=1193&height=671')
+    em_img.set_image(url='https://giffiles.alphacoders.com/728/72850.gif')
 
     embed = disnake.Embed(title="Règlement du Serveur", color=disnake.Colour.dark_gray())
     embed.add_field(name="Tos", value="Nous vous demandons de formellement respecter les termes de service de Discord.", inline=False)
@@ -549,10 +546,6 @@ async def reset(ctx):
 @bot.command(name='backup', description='Create a backup of the server')
 @commands.is_owner()
 async def backup(ctx):
-    if ctx.author.id != 723256412674719795:
-        await ctx.send("You do not have permission to use this command.")
-        return
-
     server_data = {
         'roles': {},
         'categories': {},
