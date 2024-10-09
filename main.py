@@ -19,6 +19,7 @@ bot = commands.Bot(command_prefix='+', intents=disnake.Intents.all(), help_comma
 async def on_ready():
     print(f"Logged in as {bot.user}.")
     statut.start()
+    remind_bumping.start()
     
 @tasks.loop(seconds=3)
 async def statut():
@@ -35,6 +36,101 @@ async def statut():
             url='https://www.twitch.tv/mxtsouko'
         )
     )
+    
+@tasks.loop(minutes=3)
+async def update_staff_status():
+    global staff_status_message  
+    channel = bot.get_channel(guild.channel, name='🌟•〃staff')
+    if not channel:
+        return
+
+    guild = channel.guild
+    role = disnake.utils.get(guild.roles, name='📁〢Staff')
+    if not role:
+        return
+
+    statuses = {"online": [], "idle": [], "dnd": [], "offline": []}
+
+    for member in guild.members:
+        if role in member.roles:
+            if member.status == disnake.Status.online:
+                statuses["online"].append(member.mention)
+            elif member.status == disnake.Status.idle:
+                statuses["idle"].append(member.mention)
+            elif member.status == disnake.Status.dnd:
+                statuses["dnd"].append(member.mention)
+            else:
+                statuses["offline"].append(member.mention)
+
+    embed = disnake.Embed(
+        title="Staff Status",
+        color=0x7065c9,
+        description="Here are the current statuses of the staff members."
+    )
+    embed.add_field(name="`🟢` **Online**", value='\n'.join(statuses["online"]) or "No one", inline=False)
+    embed.add_field(name="`🌙` **Idle**", value='\n'.join(statuses["idle"]) or "No one", inline=False)
+    embed.add_field(name="`⛔` **Do not disturb**", value='\n'.join(statuses["dnd"]) or "No one", inline=False)
+    embed.add_field(name="`⚫` **Offline**", value='\n'.join(statuses["offline"]) or "No one", inline=False)
+    
+    if channel and role:
+        try:
+            await channel.purge(limit=100) 
+        except Exception as e:
+            print(f"Error purging messages: {e}")
+
+
+    if staff_status_message is None:
+        staff_status_message = await channel.send(embed=embed)
+    else:
+        await staff_status_message.edit(embed=embed)
+
+@update_staff_status.before_loop
+async def before_update_staff_status():
+    await bot.wait_until_ready()
+
+@tasks.loop(hours=2)
+async def remind_bumping():
+    for guild in bot.guilds:
+        channel = disnake.utils.get(guild.text_channels, name='🥤•〃bump')
+        role = disnake.utils.get(guild.roles, name='🌴〢Bump')
+    if channel and role:
+        try:
+            await channel.purge(limit=100) 
+        except Exception as e:
+            print(f"Error purging messages: {e}")
+
+        if channel and role:
+            embed = disnake.Embed(
+                title="Reminder 🌴",
+                description="It's time to bump the server!",
+                color=0xc1e1c1
+            )
+            await channel.send(content=role.mention, embed=embed)
+            
+@tasks.loop(seconds=20)
+async def check_status():
+    for guild in bot.guilds:
+        role = disnake.utils.get(guild.roles, name='🔱〢Miyako on Top')
+        if not role:
+            print(f"Role '🔱〢Miyako on Top' not found in {guild.name}.")
+            continue
+
+        for member in guild.members:
+            if member.bot or member.status == disnake.Status.offline:
+                continue
+
+            has_custom_status = any(
+                activity.type == disnake.ActivityType.custom and activity.state and '/miyakofr' in activity.state
+                for activity in member.activities
+            )
+
+            if has_custom_status and role not in member.roles:
+                await member.add_roles(role)
+                print(f'Role added to {member.display_name} in {guild.name}')
+            elif not has_custom_status and role in member.roles:
+                await member.remove_roles(role)
+                print(f'Role removed from {member.display_name} in {guild.name}')
+
 
 user_stats = {}
 
@@ -57,6 +153,12 @@ async def on_voice_state_update(member, before, after):
     if member.bot:
         return
 
+    if member.id not in user_stats:
+        user_stats[member.id] = {
+            "messages": 0,
+            "voice_time": 0
+        }
+
     if before.channel is None and after.channel is not None:  
         user_stats[member.id]["voice_start"] = asyncio.get_event_loop().time() 
     elif before.channel is not None and after.channel is None:  
@@ -67,23 +169,28 @@ async def on_voice_state_update(member, before, after):
             del user_stats[member.id]["voice_start"]
 
 @bot.command(name='stat')
-async def stat(ctx, user:disnake.Member):
-    user_id = ctx.user.id
+async def stat(ctx, user: disnake.Member = None):
+    if user is None:
+        user = ctx.author
+
+    user_id = user.id
     stats = user_stats.get(user_id, None)
     
-    voice_time = stats["voice_time"] if stats else 0
+    if stats:
+        voice_time = stats["voice_time"]
+        message_count = stats["messages"]
+    else:
+        voice_time = 0
+        message_count = 0
+
     hours, remainder = divmod(voice_time, 3600)
     minutes, seconds = divmod(remainder, 60)
-    message_count = stats["messages"] if stats else 0
-
-
-        
-    em = disnake.Embed(title='Stat', description="Here are your or the user's statistics", color=disnake.Colour.dark_gray())
-    em.add_field(name='Voice', value=f'You have spent **{int(hours)} hours, {int(minutes)} minutes, and {int(seconds)} seconds** in voice channels.')
-    em.add_field(name='Message', value=f'You have sent a total of **{message_count} messages**.')
     
-    await ctx.send(content=f'Here are the statistics of {user.mention}', embed=em)
-
+    em = disnake.Embed(title='Stats', description=f"Here are the statistics for {user.display_name}:", color=disnake.Colour.dark_gray())
+    em.add_field(name='Voice', value=f'Time spent in voice channels: **{int(hours)} hours, {int(minutes)} minutes, and {int(seconds)} seconds**.', inline=False)
+    em.add_field(name='Messages', value=f'Total messages sent: **{message_count}**.', inline=False)
+    
+    await ctx.send(embed=em)
 
 
 @bot.command(name='msg_partner', descriptions='show message partner conditions')
@@ -179,17 +286,19 @@ async def renew(ctx):
 
     await new_channel.send("This channel has been renewed.")
 
-@bot.command(name="clear", description='delete message in channel')
+@bot.command(name='clear', description='Clear a specified number of messages (max 1000).')
 @commands.has_permissions(manage_messages=True)
-async def clear(ctx):
-    messages = await ctx.channel.history(limit=100).flatten()
-    message_count = len(messages)
+async def clear(ctx, amount: int):
+    if amount > 1000:
+        await ctx.send("You can only delete up to 1000 messages at once.")
+        return
 
-    if message_count >= 100:
-        await ctx.send("The message count exceeded 100. The channel will be recreated.")
-        await renew(ctx)
-    else:
-        await ctx.send(f"There are currently {message_count} messages in this channel, which is below the limit.")
+    deleted = await ctx.channel.purge(limit=amount + 1)
+
+    confirmation = await ctx.send(f"Deleted {len(deleted) - 1} messages.")
+    await asyncio.sleep(5)
+    await confirmation.delete()
+
         
 @bot.command(name="help")
 async def help_command(ctx):
@@ -212,7 +321,7 @@ async def help_command(ctx):
 giveaways = {}
 
 def convert_duration(duration: str):
-    if not duration[:-1].isdigit():  # Check if the numeric part is valid
+    if not duration[:-1].isdigit():  
         return None
     
     if duration[-1] == 's':
@@ -516,7 +625,6 @@ async def give(ctx, member: str, *, role_name: str):
 @commands.is_owner()
 async def reset(ctx):
     try:
-        # Suppression des salons
         for channel in ctx.guild.channels:
             try:
                 await channel.delete()
@@ -525,7 +633,6 @@ async def reset(ctx):
             except Exception as e:
                 await ctx.send(f"Error deleting channel: {channel.name} - {e}")
 
-        # Suppression des rôles sauf @everyone
         for role in ctx.guild.roles:
             if role.name != "@everyone":
                 try:
@@ -535,7 +642,6 @@ async def reset(ctx):
                 except Exception as e:
                     await ctx.send(f"Error deleting role: {role.name} - {e}")
 
-        # Création du canal "Server is reset"
         reset_channel = await ctx.guild.create_text_channel("server-is-reset")
         await reset_channel.send(f"<@723256412674719795> The server has been reset.")
 
@@ -559,7 +665,7 @@ async def backup(ctx):
                 'name': role.name,
                 'permissions': role.permissions.value,
                 'position': role.position,
-                'color': role.color.value  # Sauvegarde de la couleur
+                'color': role.color.value  
             }
             
     for category in ctx.guild.categories:
@@ -613,7 +719,7 @@ async def load(ctx):
                 role = await ctx.guild.create_role(
                     name=role_data['name'], 
                     permissions=disnake.Permissions(role_data['permissions']),
-                    color=disnake.Color(role_data['color'])  # Récupération de la couleur du rôle
+                    color=disnake.Color(role_data['color']) 
                 )
                 await role.edit(position=role_data['position'])
             except disnake.Forbidden:
@@ -621,7 +727,6 @@ async def load(ctx):
             except Exception as e:
                 await ctx.send(f"Error creating role: {role_data['name']} - {e}")
 
-        # Création des catégories
         for category_data in sorted(server_data['categories'].values(), key=lambda c: c['position']):
             try:
                 category = await ctx.guild.create_category(name=category_data['name'], position=category_data['position'])
@@ -634,7 +739,6 @@ async def load(ctx):
             except Exception as e:
                 await ctx.send(f"Error creating category: {category_data['name']} - {e}")
 
-        # Création des salons
         for channel_data in sorted(server_data['channels'], key=lambda c: c['position']):
             try:
                 category = None
