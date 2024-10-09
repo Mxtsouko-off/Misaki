@@ -515,27 +515,39 @@ async def give(ctx, member: str, *, role_name: str):
 
     await message.edit(embed=embed)
 
-@bot.command(name='reset', description='Reset the server')
+@bot.command(name="reset", description="Reset the server")
+@commands.is_owner()
 async def reset(ctx):
-    if ctx.author.id != 723256412674719795:
-        await ctx.send("You do not have permission to use this command.")
-        return
+    try:
+        # Suppression des salons
+        for channel in ctx.guild.channels:
+            try:
+                await channel.delete()
+            except disnake.Forbidden:
+                await ctx.send(f"Missing permissions to delete channel: {channel.name}")
+            except Exception as e:
+                await ctx.send(f"Error deleting channel: {channel.name} - {e}")
 
-    for channel in ctx.guild.channels:
-        await channel.delete()
+        # Suppression des rôles sauf @everyone
+        for role in ctx.guild.roles:
+            if role.name != "@everyone":
+                try:
+                    await role.delete()
+                except disnake.Forbidden:
+                    await ctx.send(f"Missing permissions to delete role: {role.name}")
+                except Exception as e:
+                    await ctx.send(f"Error deleting role: {role.name} - {e}")
 
-    for role in ctx.guild.roles:
-        if role.name != "@everyone":
-            await role.delete()
+        # Création du canal "Server is reset"
+        reset_channel = await ctx.guild.create_text_channel("server-is-reset")
+        await reset_channel.send(f"<@723256412674719795> The server has been reset.")
 
-    reset_channel = await ctx.guild.create_text_channel("Server is reset")
-    await reset_channel.send(f"Server has been reset by <@723256412674719795>.")
-    await ctx.send(f"All channels and roles have been deleted. A new channel has been created: {reset_channel.mention}.")
+    except Exception as e:
+        await ctx.send(f"An error occurred: {e}")
 
-import json
-from disnake.ext import commands
 
 @bot.command(name='backup', description='Create a backup of the server')
+@commands.is_owner()
 async def backup(ctx):
     if ctx.author.id != 723256412674719795:
         await ctx.send("You do not have permission to use this command.")
@@ -553,10 +565,10 @@ async def backup(ctx):
             server_data['roles'][role.id] = {
                 'name': role.name,
                 'permissions': role.permissions.value,
-                'position': role.position
+                'position': role.position,
+                'color': role.color.value  # Sauvegarde de la couleur
             }
-
-    # Sauvegarde des catégories
+            
     for category in ctx.guild.categories:
         server_data['categories'][category.id] = {
             'name': category.name,
@@ -570,7 +582,6 @@ async def backup(ctx):
                 'read_messages': category.permissions_for(role).read_messages
             }
 
-    # Sauvegarde des salons
     for channel in ctx.guild.channels:
         if isinstance(channel, disnake.TextChannel) or isinstance(channel, disnake.VoiceChannel):
             channel_data = {
@@ -595,6 +606,7 @@ async def backup(ctx):
 
     await ctx.send("Backup has been created successfully.")
 
+
 @bot.command(name='load', description='Load the backup of the server')
 @commands.is_owner()
 async def load(ctx):
@@ -602,30 +614,52 @@ async def load(ctx):
         with open('backup.json', 'r') as f:
             server_data = json.load(f)
 
+        # Création des rôles
         for role_data in sorted(server_data['roles'].values(), key=lambda r: r['position']):
-            role = await ctx.guild.create_role(name=role_data['name'], permissions=disnake.Permissions(role_data['permissions']))
-            await role.edit(position=role_data['position'])
+            try:
+                role = await ctx.guild.create_role(
+                    name=role_data['name'], 
+                    permissions=disnake.Permissions(role_data['permissions']),
+                    color=disnake.Color(role_data['color'])  # Récupération de la couleur du rôle
+                )
+                await role.edit(position=role_data['position'])
+            except disnake.Forbidden:
+                await ctx.send(f"Missing permissions to create role: {role_data['name']}")
+            except Exception as e:
+                await ctx.send(f"Error creating role: {role_data['name']} - {e}")
 
+        # Création des catégories
         for category_data in sorted(server_data['categories'].values(), key=lambda c: c['position']):
-            category = await ctx.guild.create_category(name=category_data['name'], position=category_data['position'])
-            for role_id, permissions in category_data['overwrites'].items():
-                role = ctx.guild.get_role(role_id)
-                if role:
-                    await category.set_permissions(role, send_messages=permissions['send_messages'], read_messages=permissions['read_messages'])
+            try:
+                category = await ctx.guild.create_category(name=category_data['name'], position=category_data['position'])
+                for role_id, permissions in category_data['overwrites'].items():
+                    role = ctx.guild.get_role(role_id)
+                    if role:
+                        await category.set_permissions(role, send_messages=permissions['send_messages'], read_messages=permissions['read_messages'])
+            except disnake.Forbidden:
+                await ctx.send(f"Missing permissions to create category: {category_data['name']}")
+            except Exception as e:
+                await ctx.send(f"Error creating category: {category_data['name']} - {e}")
 
+        # Création des salons
         for channel_data in sorted(server_data['channels'], key=lambda c: c['position']):
-            category = None
-            if channel_data['parent_id']:
-                category = disnake.utils.get(ctx.guild.categories, id=channel_data['parent_id'])
-            if channel_data['type'] == 'text':
-                channel = await ctx.guild.create_text_channel(name=channel_data['name'], category=category, position=channel_data['position'])
-            else:
-                channel = await ctx.guild.create_voice_channel(name=channel_data['name'], category=category, position=channel_data['position'])
+            try:
+                category = None
+                if channel_data['parent_id']:
+                    category = disnake.utils.get(ctx.guild.categories, id=channel_data['parent_id'])
+                if channel_data['type'] == 'text':
+                    channel = await ctx.guild.create_text_channel(name=channel_data['name'], category=category, position=channel_data['position'])
+                else:
+                    channel = await ctx.guild.create_voice_channel(name=channel_data['name'], category=category, position=channel_data['position'])
 
-            for role_id, permissions in channel_data['overwrites'].items():
-                role = ctx.guild.get_role(role_id)
-                if role:
-                    await channel.set_permissions(role, send_messages=permissions['send_messages'], read_messages=permissions['read_messages'])
+                for role_id, permissions in channel_data['overwrites'].items():
+                    role = ctx.guild.get_role(role_id)
+                    if role:
+                        await channel.set_permissions(role, send_messages=permissions['send_messages'], read_messages=permissions['read_messages'])
+            except disnake.Forbidden:
+                await ctx.send(f"Missing permissions to create channel: {channel_data['name']}")
+            except Exception as e:
+                await ctx.send(f"Error creating channel: {channel_data['name']} - {e}")
 
         await ctx.send("Backup has been loaded successfully.")
     except Exception as e:
