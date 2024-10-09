@@ -39,8 +39,10 @@ async def statut():
         )
     )
     
+channel_name = "🌟•〃staff"  # Définir le nom du canal ici
+
 @tasks.loop(minutes=3)
-async def update_staff_status(channel_name):
+async def update_staff_status():
     global staff_status_message
 
     guild = bot.guilds[0]  # Remplacez par le serveur spécifique si nécessaire
@@ -84,6 +86,7 @@ async def update_staff_status(channel_name):
         staff_status_message = await channel.send(embed=embed)
     else:
         await staff_status_message.edit(embed=embed)
+
 
 @update_staff_status.before_loop
 async def before_update_staff_status():
