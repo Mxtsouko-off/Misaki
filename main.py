@@ -20,6 +20,8 @@ async def on_ready():
     print(f"Logged in as {bot.user}.")
     statut.start()
     remind_bumping.start()
+    check_status.start()
+    update_staff_status.start()
     
 @tasks.loop(seconds=3)
 async def statut():
@@ -321,7 +323,7 @@ async def help_command(ctx):
 giveaways = {}
 
 def convert_duration(duration: str):
-    if not duration[:-1].isdigit():  
+    if not duration[:-1].isdigit():  # Check if the numeric part is valid
         return None
     
     if duration[-1] == 's':
@@ -410,7 +412,7 @@ async def rules(ctx, channel: disnake.TextChannel):
     embed.add_field(name="Tos", value="Nous vous demandons de formellement respecter les termes de service de Discord.", inline=False)
     embed.add_field(name="Interdiction", value="Il est interdit d'insulter les autres utilisateurs, d'imposer vos croyances religieuses. Chacun est libre de ses choix. Le manque de respect et toute forme de discrimination sont strictement interdits.", inline=False)
     embed.add_field(name="Bannissement", value="Les actes suivants entraîneront un bannissement : toute forme de hacking, phishing, faux cadeaux Nitro, doxing, ou dérangements vocaux.", inline=False)
-    embed.add_field(name="Pub, lien", value="Il est interdit de faire de la publicité sans permission. Vous pouvez toutefois faire une demande de partenariat si vous remplissez les conditions indiquées [ici](https://discord.com/channels/1251476405112537148/1283059386033639465).", inline=False)
+    embed.add_field(name="Pub, lien", value="Il est interdit de faire de la publicité sans permission. Vous pouvez toutefois faire une demande de partenariat si vous remplissez les conditions indiquées [ici](https://discord.com/channels/1251476405112537148/1293641123046359120).", inline=False)
     embed.add_field(name="But", value="Notre serveur a pour but de divertir les membres, de leur apporter du sourire, et de réaliser divers projets à l'avenir.", inline=False)
     embed.add_field(name="But 2", value="Nous prévoyons de vous offrir une variété de divertissements, y compris des giveaways et des projets uniques.", inline=False)
 
@@ -423,17 +425,40 @@ async def rules(ctx, channel: disnake.TextChannel):
 @commands.has_permissions(manage_messages=True)
 async def soutien(ctx, channel: disnake.TextChannel):
     embed = disnake.Embed(title="Nous Soutenir `🔎`", color=disnake.Color.dark_gray())
-    embed.add_field(name="/lataverne dans votre statut", value="Obtenez le rôle <@&1251588659015192607>", inline=False)
+    embed.add_field(name="/miyakofr dans votre statut", value="Obtenez le rôle <@&1293640997225369650>", inline=False)
     embed.add_field(name="Boostez le serveur", value="Obtenez le rôle <@&1256932646903091291> et ses avantages : https://discord.com/channels/1251476405112537148/1268927834714542183", inline=False)
     
     em2 = disnake.Embed()
-    em2.set_image(url='https://media.discordapp.net/attachments/1280352059031425035/1282095507841351692/1af689d42bdb7686df444f22925f9e89.gif?ex=66fe68bd&is=66fd173d&hm=b969f5cbb3748ab1efdb1dab19cc6a29904e8cfa4934ef0b687dca7d250d308b&=&width=1193&height=671')
+    em2.set_image(url='https://giffiles.alphacoders.com/728/72850.gif')
     
     if channel:
         await channel.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66fe310f&is=66fcdf8f&hm=4b9aca670052feb715f185c930165955d5809e277009bb314cd240167507901c&=")
         await channel.send(embed=em2)
         await channel.send(embed=embed)
             
+@bot.command(name='embed', description='create your embed')
+@commands.has_permissions(manage_messages=True)
+async def em(ctx, channel: disnake.TextChannel, titles:str, descriptions:str):
+    await ctx.message.delete()
+    embed = disnake.Embed(title=titles, description=descriptions, color=disnake.Color.dark_gray())
+    em2 = disnake.Embed()
+    em2.set_image(url='https://giffiles.alphacoders.com/728/72850.gif')
+    
+    if channel:
+        await channel.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66fe310f&is=66fcdf8f&hm=4b9aca670052feb715f185c930165955d5809e277009bb314cd240167507901c&=")
+        await channel.send(embed=em2)
+        await channel.send(embed=embed)
+        
+@bot.command(name='embed_edit', description='create your embed')
+@commands.has_permissions(manage_messages=True)
+async def emedit(ctx, id, titles:str, descriptions:str):
+    await ctx.message.delete()
+    
+    embed = disnake.Embed(title=titles, description=descriptions, color=disnake.Color.dark_gray())
+    
+    message = await ctx.channel.fetch_message(id)
+    await message.edit(embed=embed)
+
 
         
 @bot.command(name='say', description='send a message')
@@ -625,6 +650,7 @@ async def give(ctx, member: str, *, role_name: str):
 @commands.is_owner()
 async def reset(ctx):
     try:
+        # Suppression des salons
         for channel in ctx.guild.channels:
             try:
                 await channel.delete()
@@ -633,6 +659,7 @@ async def reset(ctx):
             except Exception as e:
                 await ctx.send(f"Error deleting channel: {channel.name} - {e}")
 
+        # Suppression des rôles sauf @everyone
         for role in ctx.guild.roles:
             if role.name != "@everyone":
                 try:
@@ -642,6 +669,7 @@ async def reset(ctx):
                 except Exception as e:
                     await ctx.send(f"Error deleting role: {role.name} - {e}")
 
+        # Création du canal "Server is reset"
         reset_channel = await ctx.guild.create_text_channel("server-is-reset")
         await reset_channel.send(f"<@723256412674719795> The server has been reset.")
 
@@ -665,7 +693,7 @@ async def backup(ctx):
                 'name': role.name,
                 'permissions': role.permissions.value,
                 'position': role.position,
-                'color': role.color.value  
+                'color': role.color.value  # Sauvegarde de la couleur
             }
             
     for category in ctx.guild.categories:
@@ -719,7 +747,7 @@ async def load(ctx):
                 role = await ctx.guild.create_role(
                     name=role_data['name'], 
                     permissions=disnake.Permissions(role_data['permissions']),
-                    color=disnake.Color(role_data['color']) 
+                    color=disnake.Color(role_data['color'])  # Récupération de la couleur du rôle
                 )
                 await role.edit(position=role_data['position'])
             except disnake.Forbidden:
@@ -727,6 +755,7 @@ async def load(ctx):
             except Exception as e:
                 await ctx.send(f"Error creating role: {role_data['name']} - {e}")
 
+        # Création des catégories
         for category_data in sorted(server_data['categories'].values(), key=lambda c: c['position']):
             try:
                 category = await ctx.guild.create_category(name=category_data['name'], position=category_data['position'])
@@ -739,6 +768,7 @@ async def load(ctx):
             except Exception as e:
                 await ctx.send(f"Error creating category: {category_data['name']} - {e}")
 
+        # Création des salons
         for channel_data in sorted(server_data['channels'], key=lambda c: c['position']):
             try:
                 category = None
