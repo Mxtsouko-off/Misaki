@@ -77,11 +77,6 @@ async def update_staff_status():
     embed.add_field(name="`⛔` **Do not disturb**", value='\n'.join(statuses["dnd"]) or "No one", inline=False)
     embed.add_field(name="`⚫` **Offline**", value='\n'.join(statuses["offline"]) or "No one", inline=False)
 
-    try:
-        await channel.purge(limit=100)
-    except Exception as e:
-        print(f"Error purging messages: {e}")
-
     if staff_status_message is None:
         staff_status_message = await channel.send(embed=embed)
     else:
@@ -90,6 +85,28 @@ async def update_staff_status():
 @update_staff_status.before_loop
 async def before_update_staff_status():
     await bot.wait_until_ready()
+    
+@bot.event
+async def on_member_join(member: disnake.Member):
+    guild = member.guild
+    channel = disnake.utils.get(guild.text_channels, name='💬•〃général')
+    role = disnake.utils.get(guild.roles, name="🔱〢New Member")
+
+    if channel and role:
+        em = disnake.Embed(
+            title=f'Bienvenue {member.name} <a:aw_str:1282653955498967051>, dans {guild.name} <a:3895blueclouds:1255574701909086282>',  
+            description=f'Nous sommes désormais {guild.member_count} membres, je te laisse les instructions. Si tu as besoin d\'aide, n\'hésite pas à ping un membre du staff.',
+            color=0xf53527
+        )
+        em.add_field(name='Tu peux retrouver notre règlement ici', value='https://discord.com/channels/1251476405112537148/1293641075881283605', inline=False)
+        em.add_field(name="N'oublie pas de prendre tes rôles ici", value="https://discord.com/channels/1251476405112537148/1293720766717890631", inline=False)
+        em.add_field(name="Si tu souhaites être recruté, voici notre salon de recrutement", value="https://discord.com/channels/1251476405112537148/1293641081421824112", inline=False)
+        em.set_thumbnail(url='https://cdn.discordapp.com/icons/1251476405112537148/a_8727a3a7984464a7df1bb14ed39db0a4.gif?size=1024&width=0&height=256')
+
+        await channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66f993cf&is=66f8424f&hm=f14094491366b83448d82b6c4fc17128561f4c54465a5ba9fa2fffe1fb83dda3&=')
+        await channel.send(embed=em, content=f"{member.mention} {role.mention}")  
+    else:
+        print("Erreur: Le salon '💬〃chat' ou le rôle '🔱〢New Member' est introuvable.")
 
 
 @tasks.loop(hours=2)
