@@ -596,10 +596,8 @@ async def backup(ctx):
     await ctx.send("Backup has been created successfully.")
 
 @bot.command(name='load', description='Load the backup of the server')
+@commands.is_owner()
 async def load(ctx):
-    if ctx.author.id != 723256412674719795:
-        await ctx.send("You do not have permission to use this command.")
-        return
     try:
         with open('backup.json', 'r') as f:
             server_data = json.load(f)
