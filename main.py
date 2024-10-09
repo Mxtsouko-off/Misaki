@@ -40,13 +40,14 @@ async def statut():
     )
     
 @tasks.loop(minutes=3)
-async def update_staff_status():
-    global staff_status_message  
-    channel = bot.get_channel(guild.channel, name='🌟•〃staff')
+async def update_staff_status(channel_name):
+    global staff_status_message
+
+    guild = bot.guilds[0]  # Remplacez par le serveur spécifique si nécessaire
+    channel = disnake.utils.get(guild.text_channels, name=channel_name)
     if not channel:
         return
 
-    guild = channel.guild
     role = disnake.utils.get(guild.roles, name='📁〢Staff')
     if not role:
         return
@@ -73,13 +74,11 @@ async def update_staff_status():
     embed.add_field(name="`🌙` **Idle**", value='\n'.join(statuses["idle"]) or "No one", inline=False)
     embed.add_field(name="`⛔` **Do not disturb**", value='\n'.join(statuses["dnd"]) or "No one", inline=False)
     embed.add_field(name="`⚫` **Offline**", value='\n'.join(statuses["offline"]) or "No one", inline=False)
-    
-    if channel and role:
-        try:
-            await channel.purge(limit=100) 
-        except Exception as e:
-            print(f"Error purging messages: {e}")
 
+    try:
+        await channel.purge(limit=100)
+    except Exception:
+        pass
 
     if staff_status_message is None:
         staff_status_message = await channel.send(embed=embed)
