@@ -25,6 +25,7 @@ async def on_ready():
     
 @tasks.loop(seconds=3)
 async def statut():
+    print('Statue started')
     activity_list = ["discord.gg/miyakofr", "+help", "Made By Mxtsouko"]
     selected = random.choice(activity_list)
     status_list = [disnake.Status.idle, disnake.Status.do_not_disturb, disnake.Status.online]
@@ -342,29 +343,6 @@ async def help_command(ctx):
 
 giveaways = {}
 
-def convert_duration(duration: str):
-    if not duration[:-1].isdigit():  # Check if the numeric part is valid
-        return None
-    
-    if duration[-1] == 's':
-        return int(duration[:-1])
-    elif duration[-1] == 'm':
-        return int(duration[:-1]) * 60
-    elif duration[-1] == 'h':
-        return int(duration[:-1]) * 3600
-    elif duration[-1] == 'd':
-        return int(duration[:-1]) * 86400
-    else:
-        return None
-
-import asyncio
-import random
-import disnake
-from disnake.ext import commands
-
-bot = commands.Bot(command_prefix='!')
-
-giveaways = {}
 
 @bot.command(name='giveaway')
 @commands.has_permissions(manage_messages=True)
