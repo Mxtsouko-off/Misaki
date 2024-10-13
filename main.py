@@ -96,10 +96,11 @@ async def on_member_join(member: disnake.Member):
         em = disnake.Embed(
             title=f'Bienvenue {member.name} <a:aw_str:1282653955498967051>, dans {guild.name} <a:3895blueclouds:1255574701909086282>',  
             description=f'Nous sommes désormais {guild.member_count} membres, je te laisse les instructions. Si tu as besoin d\'aide, n\'hésite pas à ping un membre du staff.',
-            color=0xf53527
+            color=0x3f9eff
         )
         em.add_field(name='Tu peux retrouver notre règlement ici', value='https://discord.com/channels/1251476405112537148/1293641075881283605', inline=False)
         em.add_field(name="N'oublie pas de prendre tes rôles ici", value="https://discord.com/channels/1251476405112537148/1293720766717890631", inline=False)
+        em.add_field(name="ici tu peut voir les rank vocal/message", value="https://discord.com/channels/1251476405112537148/1293641087696633896", inline=False)
         em.add_field(name="Si tu souhaites être recruté, voici notre salon de recrutement", value="https://discord.com/channels/1251476405112537148/1293641081421824112", inline=False)
         em.set_thumbnail(url='https://cdn.discordapp.com/icons/1251476405112537148/a_8727a3a7984464a7df1bb14ed39db0a4.gif?size=1024&width=0&height=256')
 
@@ -356,14 +357,45 @@ def convert_duration(duration: str):
     else:
         return None
 
+import asyncio
+import random
+import disnake
+from disnake.ext import commands
+
+bot = commands.Bot(command_prefix='!')
+
+giveaways = {}
+
 @bot.command(name='giveaway')
 @commands.has_permissions(manage_messages=True)
-async def start_giveaway(ctx, prize: str, conditions: str, duration: str, *, image=None):
+async def start_giveaway(ctx):
+    # Demande le prix et supprime les messages
+    question = await ctx.send("What is the prize for the giveaway?")
+    prize_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    prize = prize_msg.content
+    await question.delete()
+    await prize_msg.delete()
+
+    # Demande la durée et supprime les messages
+    question = await ctx.send("What is the duration of the giveaway? (Use 's' for seconds, 'm' for minutes, 'h' for hours, or 'd' for days)")
+    duration_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    duration = duration_msg.content
+    await question.delete()
+    await duration_msg.delete()
+
     duration_seconds = convert_duration(duration)
     if duration_seconds is None:
         await ctx.send("Invalid duration format. Use 's' for seconds, 'm' for minutes, 'h' for hours, or 'd' for days.")
         return
 
+    # Demande l'image et supprime les messages
+    question = await ctx.send("Provide an image URL (or type 'none' if you don't want to add an image).")
+    image_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    image = image_msg.content if image_msg.content.lower() != 'none' else None
+    await question.delete()
+    await image_msg.delete()
+
+    # Création de l'embed du giveaway
     embed = disnake.Embed(
         title="New Giveaway",
         description=f"Prize: ```{prize}```",
@@ -371,18 +403,18 @@ async def start_giveaway(ctx, prize: str, conditions: str, duration: str, *, ima
     )
     embed.add_field(name="Author", value=ctx.author.mention, inline=True)
     embed.add_field(name="Time", value=f"**`{duration}`**", inline=True)
-    embed.add_field(name="Conditions", value=conditions, inline=False)
+    embed.add_field(name="Conditions", value='/miyakofr in status', inline=False)
     
     if image:
         embed.set_image(url=image)
 
     message = await ctx.send(embed=embed)
     
-    await message.add_reaction("🎉")
+    await message.add_reaction("🌴")
 
     giveaways[message.id] = {
         "prize": prize,
-        "conditions": conditions,
+        "conditions": '/miyakofr in status',
         "duration": duration_seconds,
         "author": ctx.author,
         "participants": []
@@ -399,27 +431,63 @@ async def start_giveaway(ctx, prize: str, conditions: str, duration: str, *, ima
         if participants:
             winner = random.choice(participants)
             embed.add_field(name="Winner", value=winner.mention, inline=False)
-            await ctx.send(embed=embed)
-            await winner.send(f"Congratulations! You've won: **{giveaway_data['prize']}**")
+            await message.edit(embed=embed)
+            await winner.send(f"Congratulations! You've won: **{giveaway_data['prize']}**. Open a ticket to claim your prize.")
         else:
             embed.add_field(name="Winner", value="No participants.", inline=False)
-            await ctx.send(embed=embed)
+            await message.edit(embed=embed)
     
-    await message.clear_reaction("🎉")
+    await message.clear_reaction("🌴")
+
+@bot.command(name='reroll')
+@commands.has_permissions(manage_messages=True)
+async def reroll_giveaway(ctx, message_id: int):
+    message = await ctx.fetch_message(message_id)
+    if message_id in giveaways:
+        giveaway_data = giveaways[message_id]
+        participants = giveaway_data["participants"]
+        if participants:
+            winner = random.choice(participants)
+            embed = message.embeds[0]
+            embed.add_field(name="New Winner", value=winner.mention, inline=False)
+            await message.edit(embed=embed)
+            await winner.send(f"Congratulations! You've won: **{giveaway_data['prize']}**. Open a ticket to claim your prize.")
+        else:
+            await ctx.send("No participants to reroll.")
+    else:
+        await ctx.send("Giveaway not found.")
 
 @bot.event
 async def on_reaction_add(reaction, user):
-    if reaction.emoji == "🎉" and not user.bot:
+    if reaction.emoji == "🌴" and not user.bot:
         message_id = reaction.message.id
         if message_id in giveaways:
             giveaways[message_id]["participants"].append(user)
 
 @bot.event
 async def on_reaction_remove(reaction, user):
-    if reaction.emoji == "🎉" and not user.bot:
+    if reaction.emoji == "🌴" and not user.bot:
         message_id = reaction.message.id
         if message_id in giveaways:
             giveaways[message_id]["participants"].remove(user)
+
+def convert_duration(duration):
+    try:
+        time_unit = duration[-1]
+        time_value = int(duration[:-1])
+        if time_unit == 's':
+            return time_value
+        elif time_unit == 'm':
+            return time_value * 60
+        elif time_unit == 'h':
+            return time_value * 3600
+        elif time_unit == 'd':
+            return time_value * 86400
+        else:
+            return None
+    except (ValueError, IndexError):
+        return None
+
             
 @bot.command(name='rules', description='show server rules')
 @commands.has_permissions(manage_messages=True)
@@ -457,43 +525,84 @@ async def soutien(ctx, channel: disnake.TextChannel):
             
 @bot.command(name='embed', description='create your embed')
 @commands.has_permissions(manage_messages=True)
-async def em(ctx, channel: disnake.TextChannel, titles:str, descriptions:str):
-    await ctx.message.delete()
-    embed = disnake.Embed(title=titles, description=descriptions, color=disnake.Color.dark_gray())
-    em2 = disnake.Embed()
-    em2.set_image(url='https://giffiles.alphacoders.com/728/72850.gif')
-    
-    if channel:
-        await channel.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66fe310f&is=66fcdf8f&hm=4b9aca670052feb715f185c930165955d5809e277009bb314cd240167507901c&=")
-        await channel.send(embed=em2)
-        await channel.send(embed=embed)
-        
-@bot.command(name='embed_edit', description='create your embed')
+async def em(ctx):
+    question = await ctx.send("In which channel would you like to send the embed? Mention the channel.")
+    channel_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    channel = channel_msg.channel_mentions[0] if channel_msg.channel_mentions else None
+    await question.delete()
+    await channel_msg.delete()
+
+    if not channel:
+        await ctx.send("Invalid channel. Please mention a valid text channel.")
+        return
+
+    question = await ctx.send("What is the title of the embed?")
+    title_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    title = title_msg.content
+    await question.delete()
+    await title_msg.delete()
+
+    question = await ctx.send("What is the description of the embed?")
+    description_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    description = description_msg.content
+    await question.delete()
+    await description_msg.delete()
+
+    embed = disnake.Embed(title=title, description=description, color=disnake.Color.dark_gray())
+    await channel.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66fe310f&is=66fcdf8f&hm=4b9aca670052feb715f185c930165955d5809e277009bb314cd240167507901c&=")
+    await channel.send(embed=embed)
+
+@bot.command(name='embed_edit', description='edit your embed')
 @commands.has_permissions(manage_messages=True)
-async def emedit(ctx, id, titles:str, descriptions:str):
-    await ctx.message.delete()
-    
-    embed = disnake.Embed(title=titles, description=descriptions, color=disnake.Color.dark_gray())
-    
-    message = await ctx.channel.fetch_message(id)
+async def emedit(ctx):
+    question = await ctx.send("What is the ID of the message to edit?")
+    id_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    message_id = int(id_msg.content)
+    await question.delete()
+    await id_msg.delete()
+
+    question = await ctx.send("What is the new title of the embed?")
+    title_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    title = title_msg.content
+    await question.delete()
+    await title_msg.delete()
+
+    question = await ctx.send("What is the new description of the embed?")
+    description_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    description = description_msg.content
+    await question.delete()
+    await description_msg.delete()
+
+    embed = disnake.Embed(title=title, description=description, color=disnake.Color.dark_gray())
+    message = await ctx.channel.fetch_message(message_id)
     await message.edit(embed=embed)
 
-
-        
 @bot.command(name='say', description='send a message')
 @commands.has_permissions(manage_messages=True)
-async def say(ctx, *, message: str):
-    await ctx.message.delete()
+async def say(ctx):
+    question = await ctx.send("What message do you want to send?")
+    message_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    message_content = message_msg.content
+    await question.delete()
+    await message_msg.delete()
 
-    
-    await ctx.send(message)
-
+    await ctx.send(message_content)
 
 @bot.command(name='modify', description='modify bot message with id')
 @commands.has_permissions(manage_messages=True)
-async def modify(ctx, message_id: int, *, new_message: str):
-    await ctx.message.delete()
-    
+async def modify(ctx):
+    question = await ctx.send("What is the ID of the message to modify?")
+    id_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    message_id = int(id_msg.content)
+    await question.delete()
+    await id_msg.delete()
+
+    question = await ctx.send("What is the new content of the message?")
+    new_message_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    new_message = new_message_msg.content
+    await question.delete()
+    await new_message_msg.delete()
+
     try:
         message = await ctx.channel.fetch_message(message_id)
         await message.edit(content=new_message)
@@ -503,15 +612,13 @@ async def modify(ctx, message_id: int, *, new_message: str):
             color=disnake.Color.dark_gray()
         )
         msg = await ctx.send(embed=embed)
-        asyncio.sleep(3)
-        msg.delete()
-        
+        await asyncio.sleep(3)
+        await msg.delete()
+
     except disnake.NotFound:
-        await ctx.send("Message not found.", ephemeral=True)
-    except disnake.Forbidden:
-        await ctx.send("I do not have permission to edit that message.", ephemeral=True)
-    except Exception as e:
-        await ctx.send(f"An error occurred: {str(e)}", ephemeral=True)
+        await ctx.send("Message not found.")
+        
+
     
 @bot.command(name="own", description='setup mxtsouko to config bot in another server')
 async def setup_owner(ctx):
@@ -665,156 +772,10 @@ async def give(ctx, member: str, *, role_name: str):
 
     await message.edit(embed=embed)
 
-@bot.command(name="reset", description="Reset the server")
-@commands.is_owner()
-async def reset(ctx):
-    try:
-        # Suppression des salons
-        for channel in ctx.guild.channels:
-            try:
-                await channel.delete()
-            except disnake.Forbidden:
-                await ctx.send(f"Missing permissions to delete channel: {channel.name}")
-            except Exception as e:
-                await ctx.send(f"Error deleting channel: {channel.name} - {e}")
-
-        # Suppression des rôles sauf @everyone
-        for role in ctx.guild.roles:
-            if role.name != "@everyone":
-                try:
-                    await role.delete()
-                except disnake.Forbidden:
-                    await ctx.send(f"Missing permissions to delete role: {role.name}")
-                except Exception as e:
-                    await ctx.send(f"Error deleting role: {role.name} - {e}")
-
-        # Création du canal "Server is reset"
-        reset_channel = await ctx.guild.create_text_channel("server-is-reset")
-        await reset_channel.send(f"<@723256412674719795> The server has been reset.")
-
-    except Exception as e:
-        await ctx.send(f"An error occurred: {e}")
-
-
-@bot.command(name='backup', description='Create a backup of the server')
-@commands.is_owner()
-async def backup(ctx):
-    server_data = {
-        'roles': {},
-        'categories': {},
-        'channels': []
-    }
-
-    # Sauvegarde des rôles
-    for role in ctx.guild.roles:
-        if role.name != "@everyone":
-            server_data['roles'][role.id] = {
-                'name': role.name,
-                'permissions': role.permissions.value,
-                'position': role.position,
-                'color': role.color.value  # Sauvegarde de la couleur
-            }
-            
-    for category in ctx.guild.categories:
-        server_data['categories'][category.id] = {
-            'name': category.name,
-            'position': category.position,
-            'overwrites': {}
-        }
-
-        for role in ctx.guild.roles:
-            server_data['categories'][category.id]['overwrites'][role.id] = {
-                'send_messages': category.permissions_for(role).send_messages,
-                'read_messages': category.permissions_for(role).read_messages
-            }
-
-    for channel in ctx.guild.channels:
-        if isinstance(channel, disnake.TextChannel) or isinstance(channel, disnake.VoiceChannel):
-            channel_data = {
-                'id': channel.id,
-                'name': channel.name,
-                'type': 'text' if isinstance(channel, disnake.TextChannel) else 'voice',
-                'position': channel.position,
-                'parent_id': channel.category.id if channel.category else None,
-                'overwrites': {}
-            }
-
-            for role in ctx.guild.roles:
-                channel_data['overwrites'][role.id] = {
-                    'send_messages': channel.permissions_for(role).send_messages,
-                    'read_messages': channel.permissions_for(role).read_messages
-                }
-
-            server_data['channels'].append(channel_data)
-
-    with open('backup.json', 'w') as f:
-        json.dump(server_data, f, indent=4)
-
-    await ctx.send("Backup has been created successfully.")
-
-
-@bot.command(name='load', description='Load the backup of the server')
-@commands.is_owner()
-async def load(ctx):
-    try:
-        with open('backup.json', 'r') as f:
-            server_data = json.load(f)
-
-        # Création des rôles
-        for role_data in sorted(server_data['roles'].values(), key=lambda r: r['position']):
-            try:
-                role = await ctx.guild.create_role(
-                    name=role_data['name'], 
-                    permissions=disnake.Permissions(role_data['permissions']),
-                    color=disnake.Color(role_data['color'])  # Récupération de la couleur du rôle
-                )
-                await role.edit(position=role_data['position'])
-            except disnake.Forbidden:
-                await ctx.send(f"Missing permissions to create role: {role_data['name']}")
-            except Exception as e:
-                await ctx.send(f"Error creating role: {role_data['name']} - {e}")
-
-        # Création des catégories
-        for category_data in sorted(server_data['categories'].values(), key=lambda c: c['position']):
-            try:
-                category = await ctx.guild.create_category(name=category_data['name'], position=category_data['position'])
-                for role_id, permissions in category_data['overwrites'].items():
-                    role = ctx.guild.get_role(role_id)
-                    if role:
-                        await category.set_permissions(role, send_messages=permissions['send_messages'], read_messages=permissions['read_messages'])
-            except disnake.Forbidden:
-                await ctx.send(f"Missing permissions to create category: {category_data['name']}")
-            except Exception as e:
-                await ctx.send(f"Error creating category: {category_data['name']} - {e}")
-
-        # Création des salons
-        for channel_data in sorted(server_data['channels'], key=lambda c: c['position']):
-            try:
-                category = None
-                if channel_data['parent_id']:
-                    category = disnake.utils.get(ctx.guild.categories, id=channel_data['parent_id'])
-                if channel_data['type'] == 'text':
-                    channel = await ctx.guild.create_text_channel(name=channel_data['name'], category=category, position=channel_data['position'])
-                else:
-                    channel = await ctx.guild.create_voice_channel(name=channel_data['name'], category=category, position=channel_data['position'])
-
-                for role_id, permissions in channel_data['overwrites'].items():
-                    role = ctx.guild.get_role(role_id)
-                    if role:
-                        await channel.set_permissions(role, send_messages=permissions['send_messages'], read_messages=permissions['read_messages'])
-            except disnake.Forbidden:
-                await ctx.send(f"Missing permissions to create channel: {channel_data['name']}")
-            except Exception as e:
-                await ctx.send(f"Error creating channel: {channel_data['name']} - {e}")
-
-        await ctx.send("Backup has been loaded successfully.")
-    except Exception as e:
-        await ctx.send(f"An error occurred: {e}")
-
 
 @bot.command(name='suspend', description='Suspend a staff member')
 @commands.has_permissions(manage_guild=True)
-async def suspend(ctx, membre: disnake.Member, temps: str, *roles: disnake.Role):
+async def suspend(ctx, membre: disnake.Member, temps: str, roles: disnake.Role):
     time_mapping = {
         "s": 1,    
         "m": 60,    
@@ -956,23 +917,23 @@ async def tempban(ctx, member: disnake.Member, time: int, unit: str, *, reason=N
         embed.description = f"{member.name} was unbanned after serving {time} {unit}."
         await msg.edit(embed=embed)
 
-        await ctx.send(f"{member.name} has been unbanned after {time} {unit}.")
+        await ctx.msg.edit(f"{member.name} has been unbanned after {time} {unit}.")
 
     except disnake.Forbidden:
-        await ctx.send("I don't have permission to ban this user.")
+        await ctx.msg.edit("I don't have permission to ban this user.")
     except Exception as e:
-        await ctx.send(f"An error occurred: {str(e)}")
+        await ctx.msg.edit(f"An error occurred: {str(e)}")
 
 
 @ban.error
 @tempban.error
 async def ban_error(ctx, error):
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.send("Vous n'avez pas les permissions nécessaires pour utiliser cette commande.")
+    if isinstance(error, commands.MissingRole):
+        await ctx.send("You do not have permission to use this command.", delete_after=5)
     elif isinstance(error, commands.BadArgument):
-        await ctx.send("Utilisateur non trouvé ou mauvais argument.")
+        await ctx.send("Invalid argument. Make sure to mention a valid member and role.", delete_after=5)
     else:
-        await ctx.send("Une erreur est survenue.")
+        await ctx.msg.edit(f"An error occurred")
 
 
 
