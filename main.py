@@ -191,7 +191,7 @@ async def on_voice_state_update(member, before, after):
 
             del user_stats[member.id]["voice_start"]
 
-@bot.command(name='stat')
+@bot.command(name='stat', description='+stat @user (beta)')
 async def stat(ctx, user: disnake.Member = None):
     if user is None:
         user = ctx.author
@@ -216,8 +216,8 @@ async def stat(ctx, user: disnake.Member = None):
     await ctx.send(embed=em)
 
 
-@bot.command(name='msg_partner', descriptions='show message partner conditions')
-@commands.has_permissions(administrator=True)
+@bot.command(name='msg_partner', descriptions='+msg_partner (Only for manage_messages=True)')
+@commands.has_permissions(manage_messages=True)
 async def partner(ctx, channel: disnake.TextChannel):
         embed_image = disnake.Embed(color=disnake.Colour.dark_gray())
         embed_image.set_image(url='https://giffiles.alphacoders.com/728/72850.gif')
@@ -243,9 +243,9 @@ async def partner(ctx, channel: disnake.TextChannel):
             await channel.send(embed=embed_image)
             await ctx.send(embed=embed, view=view)
         
-@bot.command(name='recrutement', description='show recrutement confitions')
+@bot.command(name='recrutement', description='+recrutement (Only for manage_messages=True)')
 @commands.has_permissions(manage_messages=True)
-async def recrutement(ctx, channel: disnake.TextChannel):
+async def recrutement(ctx):
         embed_image = disnake.Embed(color=disnake.Colour.dark_gray())
         embed_image.set_image(url='https://giffiles.alphacoders.com/728/72850.gif')
 
@@ -263,15 +263,14 @@ async def recrutement(ctx, channel: disnake.TextChannel):
             def __init__(self):
                 super().__init__(label="Click Ici pour faire ta candidature!", style=disnake.ButtonStyle.link, url="https://forms.gle/QxWytREs11Q6XzAB6")
 
-        if channel:
-            view = disnake.ui.View()
-            view.add_item(Ticket())
-            view.add_item(NotrePub())
-            await channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e47bcf&is=66e32a4f&hm=ac7a1faa0c29bd995c61f7e89a7fb9aa9c201b53c4489701885e5dc2f07b57c7&=')
-            await channel.send(embed=embed_image)
-            await ctx.send(embed=embed, view=view)
+        view = disnake.ui.View()
+        view.add_item(Ticket())
+        view.add_item(NotrePub())
+        await ctx.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e47bcf&is=66e32a4f&hm=ac7a1faa0c29bd995c61f7e89a7fb9aa9c201b53c4489701885e5dc2f07b57c7&=')
+        await ctx.send(embed=embed_image)
+        await ctx.send(embed=embed, view=view)
         
-@bot.command(name='moveall', description='move all user in your channel')
+@bot.command(name='moveall', description='+moveall (Only for administrator=True)')
 @commands.has_permissions(administrator=True)
 async def moveall(ctx):
     if ctx.author.voice:  
@@ -294,7 +293,7 @@ async def moveall(ctx):
         )
         await ctx.send(embed=embed)
         
-@bot.command(name="renew", description='duplicate and remove channel')
+@bot.command(name="renew", description='+renew (Only for manage_channel=True)')
 @commands.has_permissions(manage_channels=True)
 async def renew(ctx):
     channel = ctx.channel
@@ -309,7 +308,7 @@ async def renew(ctx):
 
     await new_channel.send("This channel has been renewed.")
 
-@bot.command(name='clear', description='Clear a specified number of messages (max 1000).')
+@bot.command(name='clear', description='+clear (Amount: Max(1000)), (Only for manage_message=True)')
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount: int):
     if amount > 1000:
@@ -323,19 +322,19 @@ async def clear(ctx, amount: int):
     await confirmation.delete()
 
         
-@bot.command(name="help")
+@bot.command(name="help", description='show all commande')
 async def help_command(ctx):
     embed = disnake.Embed(
         title="Help Menu",
-        color=disnake.Color.dark_gray()
+        color=0x5ba6f3
     )
     embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else None)
     embed.set_image(url=ctx.guild.banner.url if ctx.guild.banner else None)
 
     for command in bot.commands:
         embed.add_field(
-            name=f"`{command.name}`",
-            value=f"**Description:** {command.description or 'No description provided.'}",
+            name=f"`+{command.name}`",
+            value=f"**Usage:** {command.description or 'No description provided.'}",
             inline=False
         )
 
@@ -344,8 +343,8 @@ async def help_command(ctx):
 giveaways = {}
 
 
-@bot.command(name='giveaway')
-@commands.has_permissions(manage_messages=True)
+@bot.command(name='giveaway', description='+giveaway (Only for administrator=True)')
+@commands.has_permissions(administrator=True)
 async def start_giveaway(ctx):
     # Demande le prix et supprime les messages
     question = await ctx.send("What is the prize for the giveaway?")
@@ -467,9 +466,9 @@ def convert_duration(duration):
         return None
 
             
-@bot.command(name='rules', description='show server rules')
+@bot.command(name='rules', description='+rules (Only for manage_message=True)')
 @commands.has_permissions(manage_messages=True)
-async def rules(ctx, channel: disnake.TextChannel):
+async def rules(ctx):
     em_img = disnake.Embed()
     em_img.set_image(url='https://giffiles.alphacoders.com/728/72850.gif')
 
@@ -481,14 +480,13 @@ async def rules(ctx, channel: disnake.TextChannel):
     embed.add_field(name="But", value="Notre serveur a pour but de divertir les membres, de leur apporter du sourire, et de réaliser divers projets à l'avenir.", inline=False)
     embed.add_field(name="But 2", value="Nous prévoyons de vous offrir une variété de divertissements, y compris des giveaways et des projets uniques.", inline=False)
 
-    if channel:
-        await channel.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e47bcf&is=66e32a4f&hm=ac7a1faa0c29bd995c61f7e89a7fb9aa9c201b53c4489701885e5dc2f07b57c7&=")
-        await channel.send(embed=em_img)
-        await channel.send(embed=embed)
+    await ctx.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66e47bcf&is=66e32a4f&hm=ac7a1faa0c29bd995c61f7e89a7fb9aa9c201b53c4489701885e5dc2f07b57c7&=")
+    await ctx.send(embed=em_img)
+    await ctx.send(embed=embed)
 
-@bot.command(name='support', description='show support message')
+@bot.command(name='support', description='+support (Only for manage_message=True)')
 @commands.has_permissions(manage_messages=True)
-async def soutien(ctx, channel: disnake.TextChannel):
+async def soutien(ctx):
     embed = disnake.Embed(title="Nous Soutenir `🔎`", color=disnake.Color.dark_gray())
     embed.add_field(name="/miyakofr dans votre statut", value="Obtenez le rôle <@&1293640997225369650>", inline=False)
     embed.add_field(name="Boostez le serveur", value="Obtenez le rôle <@&1256932646903091291> et ses avantages : https://discord.com/channels/1251476405112537148/1268927834714542183", inline=False)
@@ -496,12 +494,12 @@ async def soutien(ctx, channel: disnake.TextChannel):
     em2 = disnake.Embed()
     em2.set_image(url='https://giffiles.alphacoders.com/728/72850.gif')
     
-    if channel:
-        await channel.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66fe310f&is=66fcdf8f&hm=4b9aca670052feb715f185c930165955d5809e277009bb314cd240167507901c&=")
-        await channel.send(embed=em2)
-        await channel.send(embed=embed)
+
+    await ctx.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66fe310f&is=66fcdf8f&hm=4b9aca670052feb715f185c930165955d5809e277009bb314cd240167507901c&=")
+    await ctx.send(embed=em2)
+    await ctx.send(embed=embed)
             
-@bot.command(name='embed', description='create your embed')
+@bot.command(name='embed', description='+embed (Only for manage_message=True)')
 @commands.has_permissions(manage_messages=True)
 async def em(ctx):
     question = await ctx.send("In which channel would you like to send the embed? Mention the channel.")
@@ -530,7 +528,7 @@ async def em(ctx):
     await channel.send("https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66fe310f&is=66fcdf8f&hm=4b9aca670052feb715f185c930165955d5809e277009bb314cd240167507901c&=")
     await channel.send(embed=embed)
 
-@bot.command(name='embed_edit', description='edit your embed')
+@bot.command(name='embed_edit', description='+embed_edit (Only for manage_message=True)')
 @commands.has_permissions(manage_messages=True)
 async def emedit(ctx):
     question = await ctx.send("What is the ID of the message to edit?")
@@ -555,7 +553,7 @@ async def emedit(ctx):
     message = await ctx.channel.fetch_message(message_id)
     await message.edit(embed=embed)
 
-@bot.command(name='say', description='send a message')
+@bot.command(name='say', description='+say (Only for manage_message=True)')
 @commands.has_permissions(manage_messages=True)
 async def say(ctx):
     question = await ctx.send("What message do you want to send?")
@@ -566,7 +564,7 @@ async def say(ctx):
 
     await ctx.send(message_content)
 
-@bot.command(name='modify', description='modify bot message with id')
+@bot.command(name='modify', description='+modify (Only for manage_message=True)')
 @commands.has_permissions(manage_messages=True)
 async def modify(ctx):
     question = await ctx.send("What is the ID of the message to modify?")
@@ -643,7 +641,7 @@ async def setup_owner(ctx):
 
             await ctx.send(embed=embed)
 
-@bot.command(name='lock', description='Lock the channel')
+@bot.command(name='lock', description='+lock (Only for manage_channels=true)')
 @commands.has_permissions(manage_channels=True)
 async def lock(ctx):
     everyone_role = ctx.guild.default_role
@@ -666,7 +664,7 @@ async def lock(ctx):
     await ctx.send(embed=embed)
 
 
-@bot.command(name='unlock', description='Unlock the channel')
+@bot.command(name='unlock', description='+unlock (Only for manage_channels=true)')
 @commands.has_permissions(manage_channels=True)
 async def unlock(ctx):
     everyone_role = ctx.guild.default_role
@@ -688,9 +686,9 @@ async def unlock(ctx):
 
     await ctx.send(embed=embed)
 
-@bot.command(name="give", description="Assign a role to a member or all members")
+@bot.command(name="give", description="+give (@user or all) @role")
 @commands.has_permissions(manage_guild=True)
-async def give(ctx, member: str, *, role_name: str):
+async def give(ctx, member: str, *, role_name: disnake.Role):
     role = disnake.utils.get(ctx.guild.roles, name=role_name)
 
     if not role or role.position >= ctx.guild.me.top_role.position:
@@ -751,7 +749,7 @@ async def give(ctx, member: str, *, role_name: str):
     await message.edit(embed=embed)
 
 
-@bot.command(name='suspend', description='Suspend a staff member')
+@bot.command(name='suspend', description='+suspend @user time(Ex:10s), roles: (Only for manage_guild=True)')
 @commands.has_permissions(manage_guild=True)
 async def suspend(ctx, membre: disnake.Member, temps: str, roles: disnake.Role):
     time_mapping = {
@@ -813,7 +811,7 @@ async def suspend(ctx, membre: disnake.Member, temps: str, roles: disnake.Role):
 
 
 
-@bot.command(name='ban', description='Ban a user')
+@bot.command(name='ban', description='+ban @user reason, (Only for ban_member=True)')
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: disnake.Member, *, reason=None):
     if member == ctx.author:
@@ -844,7 +842,7 @@ async def ban(ctx, member: disnake.Member, *, reason=None):
     await ctx.send(content=member.mention, embed=embed)
 
 
-@bot.command(name='tempban', description='Temporarily ban a user')
+@bot.command(name='tempban', description='+tempban @user time(Ex:10 s), reason, (Only for ban_member=True)')
 @commands.has_permissions(ban_members=True)
 async def tempban(ctx, member: disnake.Member, time: int, unit: str, *, reason=None):
     if member == ctx.author:
@@ -916,7 +914,7 @@ async def ban_error(ctx, error):
 
 
 
-@bot.command(name='rank', description='promote a member role')
+@bot.command(name='rank', description='+rank @user role: (Only Administrator)')
 @commands.has_permissions(administrator=True)
 async def rank(ctx, member: disnake.Member, role: disnake.Role):
     try:
