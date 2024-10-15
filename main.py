@@ -25,7 +25,6 @@ async def on_ready():
     
 @tasks.loop(seconds=3)
 async def statut():
-    print('Statue started')
     activity_list = ["discord.gg/miyakofr", "+help", "Made By Mxtsouko"]
     selected = random.choice(activity_list)
     status_list = [disnake.Status.idle, disnake.Status.do_not_disturb, disnake.Status.online]
