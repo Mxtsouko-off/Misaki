@@ -8,12 +8,14 @@ import requests
 import aiohttp
 from datetime import timedelta
 import flask
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from threading import Thread
 import json
 from datetime import datetime, timedelta
 
 bot = commands.Bot(command_prefix='+', intents=disnake.Intents.all(), help_command=None)
+
+lock_data_file = 'locked_channels.json'
 
 @bot.event
 async def on_ready():
@@ -38,6 +40,22 @@ async def statut():
             url='https://www.twitch.tv/mxtsouko'
         )
     )
+    
+    for guild in bot.guilds:
+        for channel in guild.text_channels:
+            async for message in channel.history(limit=None): 
+                if message.author.bot:
+                    continue
+                
+                if message.author.id not in user_stats:
+                    user_stats[message.author.id] = {
+                        "messages": 0,
+                        "voice_time": 0
+                    }
+
+                user_stats[message.author.id]["messages"] += 1
+
+    save_stats()
     
 staff_status_message = None
 
@@ -90,6 +108,7 @@ async def before_update_staff_status():
 async def on_member_join(member: disnake.Member):
     guild = member.guild
     channel = disnake.utils.get(guild.text_channels, name='💬•〃général')
+    channel2 = disnake.utils.get(guild.text_channels, name='🍂•〃join')
     role = disnake.utils.get(guild.roles, name="🔱〢New Member")
 
     if channel and role:
@@ -106,9 +125,77 @@ async def on_member_join(member: disnake.Member):
 
         await channel.send('https://media.discordapp.net/attachments/1038084584149102653/1283304082286579784/2478276E-41CA-4738-B961-66A84B918163-1-1-1-1-1.gif?ex=66f993cf&is=66f8424f&hm=f14094491366b83448d82b6c4fc17128561f4c54465a5ba9fa2fffe1fb83dda3&=')
         await channel.send(embed=em, content=f"{member.mention} {role.mention}")  
+        msg = 'Bienvenue jespere que tu va passer un execelent moment avec nous'
+        await channel.send(content=f'{msg} {member.mention} <:portal:1282654939402862675>')
+        await channel2.send(embed=em, content=f"{member.mention}")  
     else:
         print("Erreur: Le salon '💬〃chat' ou le rôle '🔱〢New Member' est introuvable.")
+        
+@bot.command(name='miyako_stat', description='Show the number of users with /miyakofr in their status or description')
+async def miyako_stat(ctx):
+    miyako_users = 0
 
+    for member in ctx.guild.members:
+        if member.bot:
+            continue
+        
+        has_custom_status = any(
+            activity.type == disnake.ActivityType.custom and activity.state and '/miyakofr' in activity.state
+            for activity in member.activities
+        )
+        
+        has_custom_description = '/miyakofr' in member.display_name.lower() or '/miyakofr' in member.nick.lower() if member.nick else False
+
+        if has_custom_status or has_custom_description:
+            miyako_users += 1
+
+    em = disnake.Embed(title='Miyako Stats', description=f"There are **{miyako_users}** users with '/miyakofr' in their status or description.", color=disnake.Colour.dark_gray())
+    await ctx.send(embed=em)
+
+def load_lock_data():
+    try:
+        with open(lock_data_file, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+
+def save_lock_data(data):
+    with open(lock_data_file, 'w') as f:
+        json.dump(data, f)
+        
+@bot.event
+async def on_command(ctx):
+    lock_data = load_lock_data()
+    if str(ctx.channel.id) in lock_data:
+        await ctx.send("This channel is locked. Commands are not allowed.")
+        raise disnake.ext.commands.CommandError("Command execution blocked in locked channel.")
+
+
+@bot.command()
+async def cmd(ctx, option: str):
+    if option not in ["lock", "unlock"]:
+        await ctx.send("Invalid option. Use `lock` or `unlock`.")
+        return
+
+    lock_data = load_lock_data()
+    channel_id = str(ctx.channel.id)
+
+    if option == "lock":
+        if channel_id not in lock_data:
+            lock_data[channel_id] = True
+            save_lock_data(lock_data)
+            await ctx.send(f"Channel {ctx.channel.name} locked.")
+        else:
+            await ctx.send("This channel is already locked.")
+    
+    elif option == "unlock":
+        if channel_id in lock_data:
+            del lock_data[channel_id]
+            save_lock_data(lock_data)
+            await ctx.send(f"Channel {ctx.channel.name} unlocked.")
+        else:
+            await ctx.send("This channel is not locked.")
 
 @tasks.loop(hours=2)
 async def remind_bumping():
@@ -128,6 +215,37 @@ async def remind_bumping():
                 color=0xc1e1c1
             )
             await channel.send(content=role.mention, embed=embed)
+            
+@bot.command(name="rename_emojis", description="Remove duplicate emojis and rename all emojis.")
+@commands.has_permissions(administrator=True)
+async def rename_emojis(ctx):
+    guild = ctx.guild
+    emojis = guild.emojis
+
+    seen = {}
+    duplicate_count = 0
+    rename_count = 0
+    
+    for emoji in emojis:
+        if emoji.name not in seen:
+            seen[emoji.name] = emoji
+        else:
+            try:
+                await emoji.delete()
+                duplicate_count += 1
+            except Exception:
+                pass
+    
+    for idx, emoji in enumerate(seen.values(), start=1):
+        new_name = f"{guild.name.lower().replace(' ', '_')}_{idx}"
+        try:
+            await emoji.edit(name=new_name)
+            rename_count += 1
+        except Exception:
+            pass
+
+    await ctx.send(f"Processed emojis: {duplicate_count} duplicates removed, {rename_count} renamed to '{guild.name}_x' format.")
+
             
 @tasks.loop(seconds=20)
 async def check_status():
@@ -190,6 +308,65 @@ async def on_voice_state_update(member, before, after):
 
             del user_stats[member.id]["voice_start"]
 
+
+
+user_stats = {}
+
+STATS_FILE = "user_stats.json"
+
+def load_stats():
+    global user_stats
+    if os.path.exists(STATS_FILE):
+        with open(STATS_FILE, "r") as f:
+            user_stats = json.load(f)
+    else:
+        user_stats = {}
+
+def save_stats():
+    with open(STATS_FILE, "w") as f:
+        json.dump(user_stats, f, indent=4)
+
+load_stats()
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    if message.author.id not in user_stats:
+        user_stats[message.author.id] = {
+            "messages": 0,
+            "voice_time": 0
+        }
+
+    user_stats[message.author.id]["messages"] += 1
+
+    save_stats()
+
+    await bot.process_commands(message)
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if member.bot:
+        return
+
+    if member.id not in user_stats:
+        user_stats[member.id] = {
+            "messages": 0,
+            "voice_time": 0
+        }
+
+    if before.channel is None and after.channel is not None:  
+        user_stats[member.id]["voice_start"] = asyncio.get_event_loop().time() 
+    elif before.channel is not None and after.channel is None:  
+        if member.id in user_stats and "voice_start" in user_stats[member.id]:
+            voice_time = asyncio.get_event_loop().time() - user_stats[member.id]["voice_start"]
+            user_stats[member.id]["voice_time"] += voice_time  
+
+            del user_stats[member.id]["voice_start"]
+
+    save_stats()
+
 @bot.command(name='stat', description='+stat @user (beta)')
 async def stat(ctx, user: disnake.Member = None):
     if user is None:
@@ -197,7 +374,7 @@ async def stat(ctx, user: disnake.Member = None):
 
     user_id = user.id
     stats = user_stats.get(user_id, None)
-    
+
     if stats:
         voice_time = stats["voice_time"]
         message_count = stats["messages"]
@@ -207,12 +384,21 @@ async def stat(ctx, user: disnake.Member = None):
 
     hours, remainder = divmod(voice_time, 3600)
     minutes, seconds = divmod(remainder, 60)
-    
-    em = disnake.Embed(title='Stats', description=f"Here are the statistics for {user.display_name}:", color=disnake.Colour.dark_gray())
+
+    guild_icon = ctx.guild.icon.url if ctx.guild.icon else None
+
+    em = disnake.Embed(title=f'Stats of {user.display_name}', description=f"Here are the statistics for {user.display_name}:", color=disnake.Colour.blue())
     em.add_field(name='Voice', value=f'Time spent in voice channels: **{int(hours)} hours, {int(minutes)} minutes, and {int(seconds)} seconds**.', inline=False)
     em.add_field(name='Messages', value=f'Total messages sent: **{message_count}**.', inline=False)
-    
+
+    if guild_icon:
+        em.set_thumbnail(url=guild_icon)
+
     await ctx.send(embed=em)
+
+
+
+
 
 
 @bot.command(name='msg_partner', descriptions='+msg_partner (Only for manage_messages=True)')
@@ -945,6 +1131,14 @@ app = Flask('')
 @app.route('/')
 def main():
     return f"Logged in as {bot.user}."
+
+@app.route("/stats")
+def get_stats():
+    return user_stats
+
+@app.route('/locked_channels', methods=['GET'])
+def get_locked_channels():
+    return json.dumps(load_lock_data()), 200
 
 def run():
     app.run(host="0.0.0.0", port=8080)
