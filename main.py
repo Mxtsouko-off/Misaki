@@ -25,6 +25,22 @@ async def on_ready():
     check_status.start()
     update_staff_status.start()
     
+    for guild in bot.guilds:
+        for channel in guild.text_channels:
+            async for message in channel.history(limit=None): 
+                if message.author.bot:
+                    continue
+                
+                if message.author.id not in user_stats:
+                    user_stats[message.author.id] = {
+                        "messages": 0,
+                        "voice_time": 0
+                    }
+
+                user_stats[message.author.id]["messages"] += 1
+    
+    save_stats()
+    
 @tasks.loop(seconds=3)
 async def statut():
     activity_list = ["discord.gg/miyakofr", "+help", "Made By Mxtsouko"]
@@ -40,22 +56,8 @@ async def statut():
             url='https://www.twitch.tv/mxtsouko'
         )
     )
-    
-    for guild in bot.guilds:
-        for channel in guild.text_channels:
-            async for message in channel.history(limit=None): 
-                if message.author.bot:
-                    continue
-                
-                if message.author.id not in user_stats:
-                    user_stats[message.author.id] = {
-                        "messages": 0,
-                        "voice_time": 0
-                    }
 
-                user_stats[message.author.id]["messages"] += 1
 
-    save_stats()
     
 staff_status_message = None
 
