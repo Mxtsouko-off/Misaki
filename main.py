@@ -274,46 +274,11 @@ async def check_status():
                 print(f'Role removed from {member.display_name} in {guild.name}')
 
 
-user_stats = {}
-
-@bot.event
-async def on_message(message):
-    if message.author.bot:
-        return
-
-    if message.author.id not in user_stats:
-        user_stats[message.author.id] = {
-            "messages": 0,
-            "voice_time": 0
-        }
-    
-    user_stats[message.author.id]["messages"] += 1
-    await bot.process_commands(message)
-
-@bot.event
-async def on_voice_state_update(member, before, after):
-    if member.bot:
-        return
-
-    if member.id not in user_stats:
-        user_stats[member.id] = {
-            "messages": 0,
-            "voice_time": 0
-        }
-
-    if before.channel is None and after.channel is not None:  
-        user_stats[member.id]["voice_start"] = asyncio.get_event_loop().time() 
-    elif before.channel is not None and after.channel is None:  
-        if member.id in user_stats and "voice_start" in user_stats[member.id]:
-            voice_time = asyncio.get_event_loop().time() - user_stats[member.id]["voice_start"]
-            user_stats[member.id]["voice_time"] += voice_time  
-
-            del user_stats[member.id]["voice_start"]
 
 
 
-user_stats = {}
 STATS_FILE = "user_stats.json"
+REMOTE_STATS_URL = "https://miyako-pkzr.onrender.com/stats"
 
 def load_stats():
     global user_stats
@@ -341,8 +306,7 @@ async def on_message(message):
         }
 
     user_stats[message.author.id]["messages"] += 1
-
-    save_stats()  # Save stats after updating
+    save_stats()
 
     await bot.process_commands(message)
 
@@ -363,14 +327,13 @@ async def on_voice_state_update(member, before, after):
         if member.id in user_stats and "voice_start" in user_stats[member.id]:
             voice_time = asyncio.get_event_loop().time() - user_stats[member.id]["voice_start"]
             user_stats[member.id]["voice_time"] += voice_time  
-
             del user_stats[member.id]["voice_start"]
 
-    save_stats()  # Save stats after updating
+    save_stats()
 
 @bot.command(name='stat', description='+stat @user (beta)')
 async def stat(ctx, user: disnake.Member = None):
-    load_stats() 
+    load_stats()
 
     if user is None:
         user = ctx.author
@@ -398,8 +361,6 @@ async def stat(ctx, user: disnake.Member = None):
         em.set_thumbnail(url=guild_icon)
 
     await ctx.send(embed=em)
-
-
 
 
 
@@ -1152,7 +1113,12 @@ def main():
 
 @app.route("/stats")
 def get_stats():
-    return user_stats
+    try:
+        response = requests.get(REMOTE_STATS_URL)
+        response.raise_for_status() 
+        return response.json() 
+    except requests.RequestException:
+        return user_stats
 
 @app.route('/locked_channels', methods=['GET'])
 def get_locked_channels():
