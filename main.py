@@ -313,7 +313,6 @@ async def on_voice_state_update(member, before, after):
 
 
 user_stats = {}
-
 STATS_FILE = "user_stats.json"
 
 def load_stats():
@@ -343,7 +342,7 @@ async def on_message(message):
 
     user_stats[message.author.id]["messages"] += 1
 
-    save_stats()
+    save_stats()  # Save stats after updating
 
     await bot.process_commands(message)
 
@@ -367,10 +366,12 @@ async def on_voice_state_update(member, before, after):
 
             del user_stats[member.id]["voice_start"]
 
-    save_stats()
+    save_stats()  # Save stats after updating
 
 @bot.command(name='stat', description='+stat @user (beta)')
 async def stat(ctx, user: disnake.Member = None):
+    load_stats() 
+
     if user is None:
         user = ctx.author
 
@@ -509,23 +510,38 @@ async def clear(ctx, amount: int):
     await confirmation.delete()
 
         
-@bot.command(name="help", description='show all commande')
+@bot.command(name="help", description='Show all commands')
 async def help_command(ctx):
-    embed = disnake.Embed(
-        title="Help Menu",
-        color=0x5ba6f3
-    )
-    embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else None)
-    embed.set_image(url=ctx.guild.banner.url if ctx.guild.banner else None)
+    embed_color = 0x5ba6f3
+    max_fields_per_embed = 25  # Maximum number of fields per embed
+    command_fields = []
 
     for command in bot.commands:
-        embed.add_field(
-            name=f"`+{command.name}`",
-            value=f"**Usage:** {command.description or 'No description provided.'}",
-            inline=False
+        command_fields.append(
+            (f"`+{command.name}`", f"**Usage:** {command.description or 'No description provided.'}")
         )
 
-    await ctx.send(embed=embed)
+    total_commands = len(command_fields)
+    total_embeds = (total_commands + max_fields_per_embed - 1) // max_fields_per_embed  # Calculate number of embeds needed
+
+    for i in range(total_embeds):
+        embed = disnake.Embed(
+            title="Help Menu" if i == 0 else None,
+            description=f"Total commands: {total_commands}",
+            color=embed_color
+        )
+        if i == 0:
+            embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else None)
+            embed.set_image(url=ctx.guild.banner.url if ctx.guild.banner else None)
+
+        start_index = i * max_fields_per_embed
+        end_index = start_index + max_fields_per_embed
+        for field in command_fields[start_index:end_index]:
+            embed.add_field(name=field[0], value=field[1], inline=False)
+
+        await ctx.send(embed=embed)
+
+
 
 giveaways = {}
 
